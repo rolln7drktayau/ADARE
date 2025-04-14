@@ -1,0 +1,211 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="triangleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f6f9fc" />
+      <stop offset="100%" stop-color="#e6f0f9" />
+    </linearGradient>
+    <linearGradient id="cloudGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#64B5F6" />
+      <stop offset="100%" stop-color="#2196F3" />
+    </linearGradient>
+    <linearGradient id="fogGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#81D4FA" />
+      <stop offset="100%" stop-color="#29B6F6" />
+    </linearGradient>
+    <linearGradient id="edgeGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4FC3F7" />
+      <stop offset="100%" stop-color="#03A9F4" />
+    </linearGradient>
+    <linearGradient id="edgeGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4DD0E1" />
+      <stop offset="100%" stop-color="#00BCD4" />
+    </linearGradient>
+    <linearGradient id="arrowGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#66BB6A" />
+      <stop offset="100%" stop-color="#43A047" />
+    </linearGradient>
+    <linearGradient id="arrowGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7CB342" />
+      <stop offset="100%" stop-color="#558B2F" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="#333" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  
+  <!-- Triangle background -->
+  <polygon points="400,50 100,550 700,550" fill="url(#triangleGradient)" stroke="#3949AB" stroke-width="4" filter="url(#shadow)" />
+  
+  <!-- Layer backgrounds -->
+  <polygon points="400,50 183.33,216.67 616.67,216.67" fill="#E3F2FD" stroke="none" opacity="0.7" />
+  <polygon points="183.33,216.67 266.67,383.33 533.33,383.33 616.67,216.67" fill="#E1F5FE" stroke="none" opacity="0.7" />
+  <polygon points="266.67,383.33 100,550 700,550 533.33,383.33" fill="#E0F7FA" stroke="none" opacity="0.7" />
+  
+  <!-- Horizontal dividing lines -->
+  <line x1="183.33" y1="216.67" x2="616.67" y2="216.67" stroke="#3949AB" stroke-width="3" />
+  <line x1="266.67" y1="383.33" x2="533.33" y2="383.33" stroke="#3949AB" stroke-width="3" />
+  
+  <!-- Layer labels -->
+  <g filter="url(#shadow)">
+    <text x="145" y="190" font-family="Arial" font-size="26" font-weight="bold" fill="#1A237E">Cloud</text>
+    <text x="155" y="350" font-family="Arial" font-size="26" font-weight="bold" fill="#1565C0">Fog</text>
+    <text x="155" y="500" font-family="Arial" font-size="26" font-weight="bold" fill="#0277BD">Edge</text>
+  </g>
+  
+  <!-- Scale labels -->
+  <g filter="url(#shadow)">
+    <text x="600" y="190" font-family="Arial" font-size="24" font-weight="bold" fill="#1A237E">Thousands</text>
+    <text x="600" y="350" font-family="Arial" font-size="24" font-weight="bold" fill="#1565C0">Millions</text>
+    <text x="600" y="500" font-family="Arial" font-size="24" font-weight="bold" fill="#0277BD">Billions</text>
+  </g>
+  
+  <!-- Cloud with gradient and glow -->
+  <path d="M400,120 C430,100 470,110 480,130 C500,110 540,120 540,150 C540,180 520,190 490,190 C490,210 470,220 440,210 C420,230 390,220 380,200 C350,210 330,190 340,160 C330,140 360,110 400,120" fill="url(#cloudGradient)" stroke="#1A237E" stroke-width="2" filter="url(#glow)" />
+  
+  <!-- Fog servers - Left group -->
+  <g filter="url(#shadow)">
+    <rect x="260" y="270" width="60" height="20" rx="5" fill="url(#fogGradient)" stroke="#1565C0" stroke-width="2" />
+    <rect x="260" y="295" width="60" height="20" rx="5" fill="url(#fogGradient)" stroke="#1565C0" stroke-width="2" />
+    <rect x="260" y="320" width="60" height="20" rx="5" fill="url(#fogGradient)" stroke="#1565C0" stroke-width="2" />
+    <circle cx="273" cy="280" r="3" fill="#1565C0" />
+    <circle cx="273" cy="305" r="3" fill="#1565C0" />
+    <circle cx="273" cy="330" r="3" fill="#1565C0" />
+  </g>
+  
+  <!-- Fog servers - Middle group -->
+  <g filter="url(#shadow)">
+    <rect x="370" y="270" width="60" height="20" rx="5" fill="url(#fogGradient)" stroke="#1565C0" stroke-width="2" />
+    <rect x="370" y="295" width="60" height="20" rx="5" fill="url(#fogGradient)" stroke="#1565C0" stroke-width="2" />
+    <rect x="370" y="320" width="60" height="20" rx="5" fill="url(#fogGradient)" stroke="#1565C0" stroke-width="2" />
+    <circle cx="383" cy="280" r="3" fill="#1565C0" />
+    <circle cx="383" cy="305" r="3" fill="#1565C0" />
+    <circle cx="383" cy="330" r="3" fill="#1565C0" />
+  </g>
+  
+  <!-- Fog servers - Right group -->
+  <g filter="url(#shadow)">
+    <rect x="480" y="270" width="60" height="20" rx="5" fill="url(#fogGradient)" stroke="#1565C0" stroke-width="2" />
+    <rect x="480" y="295" width="60" height="20" rx="5" fill="url(#fogGradient)" stroke="#1565C0" stroke-width="2" />
+    <rect x="480" y="320" width="60" height="20" rx="5" fill="url(#fogGradient)" stroke="#1565C0" stroke-width="2" />
+    <circle cx="493" cy="280" r="3" fill="#1565C0" />
+    <circle cx="493" cy="305" r="3" fill="#1565C0" />
+    <circle cx="493" cy="330" r="3" fill="#1565C0" />
+  </g>
+  
+  <!-- Edge devices with gradients and effects -->
+  <!-- Smartphone -->
+  <g filter="url(#shadow)">
+    <rect x="200" y="460" width="30" height="50" rx="5" fill="url(#edgeGradient1)" stroke="#0277BD" stroke-width="2" />
+    <rect x="205" y="465" width="20" height="30" rx="2" fill="#E1F5FE" stroke="#0277BD" stroke-width="1" />
+    <circle cx="215" cy="505" r="3" fill="#E1F5FE" />
+    <!-- Signal waves -->
+    <path d="M 240,460 C 250,455 260,460 270,455" fill="none" stroke="#8C9EFF" stroke-width="1.5" stroke-linecap="round" />
+    <path d="M 240,470 C 255,465 270,470 285,465" fill="none" stroke="#8C9EFF" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+  
+  <!-- Car -->
+  <g filter="url(#shadow)">
+    <path d="M270,510 C275,500 295,500 300,510 L305,520 L265,520 Z" fill="url(#edgeGradient2)" stroke="#0277BD" stroke-width="2" />
+    <circle cx="275" cy="520" r="5" fill="#E1F5FE" stroke="#0277BD" stroke-width="1.5" />
+    <circle cx="295" cy="520" r="5" fill="#E1F5FE" stroke="#0277BD" stroke-width="1.5" />
+    <!-- Signal waves -->
+    <path d="M 310,480 C 320,475 330,480 340,475" fill="none" stroke="#8C9EFF" stroke-width="1.5" stroke-linecap="round" />
+    <path d="M 310,490 C 325,485 340,490 355,485" fill="none" stroke="#8C9EFF" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+  
+  <!-- Robot -->
+  <g filter="url(#shadow)">
+    <rect x="350" y="455" width="25" height="35" rx="3" fill="url(#edgeGradient1)" stroke="#0277BD" stroke-width="2" />
+    <circle cx="362.5" cy="450" r="10" fill="url(#edgeGradient1)" stroke="#0277BD" stroke-width="2" />
+    <line x1="355" y1="490" x2="345" y2="510" stroke="#0277BD" stroke-width="2" />
+    <line x1="370" y1="490" x2="380" y2="510" stroke="#0277BD" stroke-width="2" />
+    <circle cx="362.5" cy="450" r="2" fill="#E1F5FE" />
+    <!-- Signal waves -->
+    <path d="M 380,440 C 390,435 400,440 410,435" fill="none" stroke="#8C9EFF" stroke-width="1.5" stroke-linecap="round" />
+    <path d="M 380,450 C 395,445 410,450 425,445" fill="none" stroke="#8C9EFF" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+  
+  <!-- Factory -->
+  <g filter="url(#shadow)">
+    <path d="M420,475 L440,460 L460,475 L460,510 L420,510 Z" fill="url(#edgeGradient2)" stroke="#0277BD" stroke-width="2" />
+    <rect x="435" y="490" width="10" height="20" fill="#E1F5FE" stroke="#0277BD" stroke-width="1" />
+    <path d="M430,460 C440,445 450,445 450,460" fill="none" stroke="#0277BD" stroke-width="2" />
+    <!-- Steam/smoke -->
+    <path d="M440,445 C443,440 447,442 445,435 C448,430 443,428 440,430" fill="none" stroke="#90CAF9" stroke-width="1.5" />
+  </g>
+  
+  <!-- Train -->
+  <g filter="url(#shadow)">
+    <rect x="480" y="495" width="40" height="15" rx="5" fill="url(#edgeGradient1)" stroke="#0277BD" stroke-width="2" />
+    <rect x="485" y="485" width="30" height="10" rx="3" fill="url(#edgeGradient1)" stroke="#0277BD" stroke-width="2" />
+    <circle cx="488" cy="510" r="4" fill="#E1F5FE" stroke="#0277BD" stroke-width="1.5" />
+    <circle cx="512" cy="510" r="4" fill="#E1F5FE" stroke="#0277BD" stroke-width="1.5" />
+    <rect x="490" y="488" width="5" height="5" fill="#E1F5FE" />
+    <rect x="500" y="488" width="5" height="5" fill="#E1F5FE" />
+    <!-- Signal waves -->
+    <path d="M 525,475 C 535,470 545,475 555,470" fill="none" stroke="#8C9EFF" stroke-width="1.5" stroke-linecap="round" />
+    <path d="M 525,485 C 540,480 555,485 570,480" fill="none" stroke="#8C9EFF" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+  
+  <!-- Aircraft/Drone -->
+  <g filter="url(#shadow)">
+    <path d="M580,490 L590,475 L600,490 L605,485 L590,465 L575,485 Z" fill="url(#edgeGradient2)" stroke="#0277BD" stroke-width="2" />
+    <circle cx="590" cy="480" r="4" fill="#E1F5FE" stroke="#0277BD" stroke-width="1" />
+    <!-- Signal waves -->
+    <path d="M 605,460 C 615,455 625,460 635,455" fill="none" stroke="#8C9EFF" stroke-width="1.5" stroke-linecap="round" />
+    <path d="M 605,470 C 620,465 635,470 650,465" fill="none" stroke="#8C9EFF" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+  
+  <!-- Communication arrows with gradients and glow - Cloud to Fog -->
+  <g filter="url(#glow)">
+    <!-- Left arrows -->
+    <line x1="290" y1="216.67" x2="290" y2="250" stroke="url(#arrowGradient1)" stroke-width="4" />
+    <polygon points="290,250 285,240 295,240" fill="#43A047" />
+    <line x1="310" y1="250" x2="310" y2="216.67" stroke="url(#arrowGradient2)" stroke-width="4" />
+    <polygon points="310,216.67 305,226.67 315,226.67" fill="#558B2F" />
+    
+    <!-- Middle arrows -->
+    <line x1="400" y1="216.67" x2="400" y2="250" stroke="url(#arrowGradient1)" stroke-width="4" />
+    <polygon points="400,250 395,240 405,240" fill="#43A047" />
+    <line x1="420" y1="250" x2="420" y2="216.67" stroke="url(#arrowGradient2)" stroke-width="4" />
+    <polygon points="420,216.67 415,226.67 425,226.67" fill="#558B2F" />
+    
+    <!-- Right arrows -->
+    <line x1="510" y1="216.67" x2="510" y2="250" stroke="url(#arrowGradient1)" stroke-width="4" />
+    <polygon points="510,250 505,240 515,240" fill="#43A047" />
+    <line x1="530" y1="250" x2="530" y2="216.67" stroke="url(#arrowGradient2)" stroke-width="4" />
+    <polygon points="530,216.67 525,226.67 535,226.67" fill="#558B2F" />
+  </g>
+  
+  <!-- Communication arrows with gradients and glow - Fog to Edge -->
+  <g filter="url(#glow)">
+    <!-- Left arrows -->
+    <line x1="280" y1="383.33" x2="280" y2="420" stroke="url(#arrowGradient1)" stroke-width="4" />
+    <polygon points="280,420 275,410 285,410" fill="#43A047" />
+    <line x1="300" y1="420" x2="300" y2="383.33" stroke="url(#arrowGradient2)" stroke-width="4" />
+    <polygon points="300,383.33 295,393.33 305,393.33" fill="#558B2F" />
+    
+    <!-- Middle arrows -->
+    <line x1="390" y1="383.33" x2="390" y2="420" stroke="url(#arrowGradient1)" stroke-width="4" />
+    <polygon points="390,420 385,410 395,410" fill="#43A047" />
+    <line x1="410" y1="420" x2="410" y2="383.33" stroke="url(#arrowGradient2)" stroke-width="4" />
+    <polygon points="410,383.33 405,393.33 415,393.33" fill="#558B2F" />
+    
+    <!-- Right arrows -->
+    <line x1="500" y1="383.33" x2="500" y2="420" stroke="url(#arrowGradient1)" stroke-width="4" />
+    <polygon points="500,420 495,410 505,410" fill="#43A047" />
+    <line x1="520" y1="420" x2="520" y2="383.33" stroke="url(#arrowGradient2)" stroke-width="4" />
+    <polygon points="520,383.33 515,393.33 525,393.33" fill="#558B2F" />
+  </g>
+  
+  <!-- Figure caption with enhanced style -->
+  <g filter="url(#shadow)">
+    <rect x="300" y="555" width="200" height="30" rx="15" fill="#3949AB" opacity="0.8" />
+    <text x="400" y="575" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="white">Fig. 1: Edge-Fog-Cloud Architecture</text>
+  </g>
+</svg>

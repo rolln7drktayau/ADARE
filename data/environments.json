@@ -1,0 +1,29 @@
+{
+    "Edge": {
+        "devices": 5,
+        "processing_rate": 1000,
+        "processing_cost": 0.02,
+        "idle_power": 30,
+        "working_power": 700,
+        "uplink_bandwidth": 20480,
+        "downlink_bandwidth": 20480
+    },
+    "Fog": {
+        "devices": 5,
+        "processing_rate": 1300,
+        "processing_cost": 0.48,
+        "idle_power": 30,
+        "working_power": 700,
+        "uplink_bandwidth": 10000,
+        "downlink_bandwidth": 10000
+    },
+    "Cloud": {
+        "devices": 5,
+        "processing_rate": 1600,
+        "processing_cost": 0.96,
+        "idle_power": 1332,
+        "working_power": 1648,
+        "uplink_bandwidth": 100,
+        "downlink_bandwidth": 10000
+    }
+}

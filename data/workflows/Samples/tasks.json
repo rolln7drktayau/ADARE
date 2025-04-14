@@ -1,0 +1,30 @@
+{
+    "tasks": [
+      {"id": 1, "instructions": 500000, "data_size": 10, "dependencies": [], "deadline": 5},
+      {"id": 2, "instructions": 500000, "data_size": 10, "dependencies": [], "deadline": 5},
+      {"id": 3, "instructions": 500000, "data_size": 10, "dependencies": [], "deadline": 5},
+      {"id": 4, "instructions": 1000000, "data_size": 20, "dependencies": [], "deadline": 10},
+      {"id": 5, "instructions": 1000000, "data_size": 20, "dependencies": [], "deadline": 10},
+      {"id": 6, "instructions": 2000000, "data_size": 50, "dependencies": [1, 2, 3], "deadline": 15},
+      {"id": 7, "instructions": 3000000, "data_size": 60, "dependencies": [4], "deadline": 20},
+      {"id": 8, "instructions": 2000000, "data_size": 40, "dependencies": [5], "deadline": 15},
+      {"id": 9, "instructions": 1000000, "data_size": 100, "dependencies": [6, 7, 8], "deadline": 25},
+      {"id": 10, "instructions": 500000, "data_size": 50, "dependencies": [9], "deadline": 30},
+      {"id": 11, "instructions": 3000000, "data_size": 30, "dependencies": [10], "deadline": 35},
+      {"id": 12, "instructions": 4000000, "data_size": 40, "dependencies": [10], "deadline": 40},
+      {"id": 13, "instructions": 2000000, "data_size": 20, "dependencies": [10], "deadline": 30},
+      {"id": 14, "instructions": 5000000, "data_size": 100, "dependencies": [6, 7, 8], "deadline": 50},
+      {"id": 15, "instructions": 6000000, "data_size": 120, "dependencies": [12], "deadline": 60},
+      {"id": 16, "instructions": 4000000, "data_size": 80, "dependencies": [13], "deadline": 55},
+      {"id": 17, "instructions": 1000000, "data_size": 200, "dependencies": [6, 7, 8, 14, 15, 16], "deadline": 70},
+      {"id": 18, "instructions": 500000, "data_size": 50, "dependencies": [17], "deadline": 75},
+      {"id": 19, "instructions": 8000000, "data_size": 150, "dependencies": [14, 15, 16], "deadline": 80},
+      {"id": 20, "instructions": 7000000, "data_size": 120, "dependencies": [19], "deadline": 85},
+      {"id": 21, "instructions": 2000000, "data_size": 300, "dependencies": [9, 17, 20], "deadline": 90},
+      {"id": 22, "instructions": 1000000, "data_size": 100, "dependencies": [21], "deadline": 95},
+      {"id": 23, "instructions": 3000000, "data_size": 50, "dependencies": [10, 21], "deadline": 100},
+      {"id": 24, "instructions": 4000000, "data_size": 60, "dependencies": [23], "deadline": 105},
+      {"id": 25, "instructions": 2000000, "data_size": 30, "dependencies": [1, 2, 3, 4, 5], "deadline": 110},
+      {"id": 26, "instructions": 1000000, "data_size": 20, "dependencies": [25], "deadline": 115}
+    ]
+  }

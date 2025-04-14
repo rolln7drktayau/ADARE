@@ -1,0 +1,103 @@
+ADARE vs NSGA-III Comparison Report
+==================================================
+
+Performance Metrics:
+--------------------
+Makespan:
+  ADARE: 26687.50
+  NSGA-III: 27812.50
+  Improvement: +4.0%
+
+Latence:
+  ADARE: 1743.16
+  NSGA-III: 1771.45
+  Improvement: +1.6%
+
+Coût:
+  ADARE: 32514.62
+  NSGA-III: 31357.69
+  Improvement: -3.7%
+
+Énergie:
+  ADARE: 63424230.77
+  NSGA-III: 61865384.62
+  Improvement: -2.5%
+
+
+Statistical Comparison:
+--------------------
+hv:
+  ADARE: 4.50e+21 ± 2.64e+20
+  NSGA-III: 4.27e+21 ± 3.51e+20
+  5.4%
+
+hausdorff:
+  ADARE: 1.89e+06 ± 9.17e+05
+  NSGA-III: 1.95e+06 ± 8.07e+05
+  2.9%
+
+spread:
+  ADARE: 1.18e+09 ± 4.37e+07
+  NSGA-III: 1.16e+09 ± 3.92e+07
+  1.9%
+
+time:
+  ADARE: 2.94 ± 0.12
+  NSGA-III: 2.93 ± 0.61
+  0.2%
+
+
+AI Analysis:
+--------------------
+### Analyse comparative des algorithmes ADARE et NSGA-III
+
+L'analyse comparative des algorithmes ADARE et NSGA-III se base sur plusieurs métriques directes et statistiques, permettant d'évaluer leur robustesse et leur efficacité dans le cadre de l'optimisation. 
+
+#### Métriques directes
+
+Les résultats des métriques directes montrent que :
+
+- **Makespan** : ADARE 26,687.50 vs NSGA-III 27,812.50
+- **Latence** : ADARE 1,743.16 vs NSGA-III 1,771.45
+- **Coût** : ADARE 32,514.62 vs NSGA-III 31,357.69
+- **Énergie** : ADARE 63,424,230.77 vs NSGA-III 61,865,384.62
+
+Pour effectuer une moyenne de ces métriques, nous pouvons procéder comme suit :
+
+- **Makespan** : (26,687.50 + 27,812.50) / 2 = 27,250
+- **Latence** : (1,743.16 + 1,771.45) / 2 = 1,757.31
+- **Coût** : (32,514.62 + 31,357.69) / 2 = 31,936.16
+- **Énergie** : (63,424,230.77 + 61,865,384.62) / 2 = 62,644,807.69
+
+### Deductions sur les métriques directes
+
+- **Meilleure minimisation** : ADARE a mieux minimisé les métriques de **Makespan** et de **Latence**, indiquant une performance supérieure dans le temps d'exécution et la réactivité. En revanche, **NSGA-III** a mieux réduit les coûts et l'énergie consommée.
+
+#### Métriques statistiques
+
+Les résultats des métriques statistiques sont les suivants :
+
+- **HV (Hypervolume)** : ADARE 4.50e+21 ± 2.64e+20 vs NSGA-III 4.27e+21 ± 3.51e+20 (Amélioration: 5.4%)
+- **Hausdorff** : ADARE 1.89e+06 ± 9.17e+05 vs NSGA-III 1.95e+06 ± 8.07e+05 (Amélioration: 2.9%)
+- **Spread** : ADARE 1.18e+09 ± 4.37e+07 vs NSGA-III 1.16e+09 ± 3.92e+07 (Amélioration: 1.9%)
+- **Time** : ADARE 2.94 ± 0.12 vs NSGA-III 2.93 ± 0.61 (Amélioration: 0.2%)
+
+### Deductions sur les métriques statistiques
+
+Pour ces métriques, une moyenne directe n'est pas nécessaire, car elles ont déjà été regroupées. Cependant, on peut constater que :
+
+- **Meilleure minimisation** : ADARE a encore montré de meilleures performances, notamment sur l'indice **HV** et le **Hausdorff**, ce qui indique une meilleure couverture de l'espace de recherche et une convergence plus efficace vers des solutions optimales.
+
+### Explication des métriques statistiques
+
+1. **HV (Hypervolume)** : Mesure la taille de l'espace de décision dominé par un ensemble de solutions, permettant d'évaluer la qualité et la diversité des solutions. Une valeur élevée indique une meilleure performance globalement.
+
+2. **Hausdorff** : Évalue la distance maximale entre les points d’un ensemble de solutions et les solutions de référence. Un Hausdorff plus faible signifie une meilleure proximité des solutions par rapport à l'idéal.
+
+3. **Spread** : Indique la distribution des solutions dans l'espace de solutions. Un bon spread signifie que les solutions sont bien dispersées et couvrent efficacement l'espace.
+
+4. **Time** : Temps d'exécution moyen des algorithmes, un facteur important dans le cadre des applications en temps réel et pour l'optimisation de processus. Un temps plus court est préférable.
+
+### Conclusion
+
+Dans l'ensemble, malgré quelques avantages de NSGA-III sur les coûts et l'énergie, **ADARE** s'est montré supérieur dans la minimisation du Makespan et de la latence, ainsi que dans la performance des métriques statistiques, signalant une meilleure adéquation pour des solutions rapides et diversifiées dans des environnements d'optimisation.

@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <!-- Gradient definitions -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f2027" />
+      <stop offset="50%" stop-color="#203a43" />
+      <stop offset="100%" stop-color="#2c5364" />
+    </linearGradient>
+    
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4facfe" />
+      <stop offset="100%" stop-color="#00f2fe" />
+    </linearGradient>
+    
+    <linearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FA8BFF" />
+      <stop offset="50%" stop-color="#2BD2FF" />
+      <stop offset="100%" stop-color="#2BFF88" />
+    </linearGradient>
+    
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  
+  <!-- Background circle with gradient -->
+  <circle cx="250" cy="250" r="240" fill="url(#bgGradient)" />
+  
+  <!-- Decorative rings -->
+  <circle cx="250" cy="250" r="220" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.1" />
+  <circle cx="250" cy="250" r="200" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.1" />
+  <circle cx="250" cy="250" r="180" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.1" />
+  
+  <!-- Abstract data flow representation -->
+  <g opacity="0.7">
+    <path d="M250,100 C350,150 300,200 400,180" fill="none" stroke="url(#accentGradient)" stroke-width="3" />
+    <path d="M250,100 C150,150 200,200 100,180" fill="none" stroke="url(#accentGradient)" stroke-width="3" />
+    <path d="M250,400 C350,350 300,300 400,320" fill="none" stroke="url(#accentGradient)" stroke-width="3" />
+    <path d="M250,400 C150,350 200,300 100,320" fill="none" stroke="url(#accentGradient)" stroke-width="3" />
+  </g>
+  
+  <!-- Central geometric symbol -->
+  <g transform="translate(250, 250)">
+    <!-- Inner hexagon -->
+    <polygon points="0,-80 69.3,-40 69.3,40 0,80 -69.3,40 -69.3,-40" 
+             fill="none" stroke="#ffffff" stroke-width="3" stroke-opacity="0.9" />
+    
+    <!-- Glowing center -->
+    <circle cx="0" cy="0" r="40" fill="url(#glowGradient)" filter="url(#glow)" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.7;0.9" dur="3s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="0" cy="0" r="25" fill="#ffffff" opacity="0.9" />
+    
+    <!-- Abstract circuit lines -->
+    <line x1="0" y1="-80" x2="0" y2="-40" stroke="#ffffff" stroke-width="2" />
+    <line x1="69.3" y1="-40" x2="35" y2="-20" stroke="#ffffff" stroke-width="2" />
+    <line x1="69.3" y1="40" x2="35" y2="20" stroke="#ffffff" stroke-width="2" />
+    <line x1="0" y1="80" x2="0" y2="40" stroke="#ffffff" stroke-width="2" />
+    <line x1="-69.3" y1="40" x2="-35" y2="20" stroke="#ffffff" stroke-width="2" />
+    <line x1="-69.3" y1="-40" x2="-35" y2="-20" stroke="#ffffff" stroke-width="2" />
+    
+    <!-- Connection nodes -->
+    <circle cx="0" cy="-40" r="5" fill="#ffffff" />
+    <circle cx="35" cy="-20" r="5" fill="#ffffff" />
+    <circle cx="35" cy="20" r="5" fill="#ffffff" />
+    <circle cx="0" cy="40" r="5" fill="#ffffff" />
+    <circle cx="-35" cy="20" r="5" fill="#ffffff" />
+    <circle cx="-35" cy="-20" r="5" fill="#ffffff" />
+  </g>
+  
+  <!-- Dynamic particles -->
+  <g>
+    <circle cx="320" cy="180" r="3" fill="#ffffff">
+      <animate attributeName="cx" values="320;350;320" dur="4s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="180;200;180" dur="4s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="180" cy="180" r="3" fill="#ffffff">
+      <animate attributeName="cx" values="180;150;180" dur="4s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="180;200;180" dur="4s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="320" cy="320" r="3" fill="#ffffff">
+      <animate attributeName="cx" values="320;350;320" dur="4s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="320;300;320" dur="4s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="180" cy="320" r="3" fill="#ffffff">
+      <animate attributeName="cx" values="180;150;180" dur="4s" repeatCount="indefinite" />
+      <animate attributeName="cy" values="320;300;320" dur="4s" repeatCount="indefinite" />
+    </circle>
+  </g>
+  
+  <!-- ADARE Text -->
+  <g transform="translate(250, 400)">
+    <text x="0" y="0" font-family="'Segoe UI', Arial, sans-serif" font-size="48" font-weight="600" text-anchor="middle" fill="#ffffff" letter-spacing="5">ADARE</text>
+    <text x="0" y="20" font-family="'Segoe UI', Arial, sans-serif" font-size="12" font-weight="300" text-anchor="middle" fill="#ffffff" letter-spacing="1.5">ADAPTIVE DEEP-REINFORCED AUTO-LEARNING RESOURCE ENGINE</text>
+  </g>
+</svg>

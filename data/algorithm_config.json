@@ -1,0 +1,23 @@
+{
+    "nsga3": {
+      "population_size": 50,
+      "generations": 100,
+      "crossover_probability": 0.9,
+      "mutation_probability": 0.1,
+      "reference_points_divisions": 12,
+      "objectives": ["makespan", "latency", "cost", "energy"]
+    },
+    "simulation": {
+      "time_unit": "seconds",
+      "log_level": "info",
+      "random_seed": 42
+    },
+    "visualization": {
+      "show_plots": true,
+      "save_plots": true,
+      "plot_formats": ["png"],
+      "plot_pareto_front": true,
+      "plot_schedule": true,
+      "plot_metrics": true
+    }
+  }
