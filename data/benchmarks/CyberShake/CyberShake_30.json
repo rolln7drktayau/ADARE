@@ -1,0 +1,294 @@
+{
+    "tasks": [
+        {
+            "id": 1,
+            "instructions": 5250,
+            "data_size": 0.0,
+            "dependencies": [
+                7,
+                5,
+                9,
+                13,
+                22,
+                11,
+                24,
+                26,
+                18,
+                28,
+                16,
+                30,
+                20
+            ],
+            "deadline": 0
+        },
+        {
+            "id": 2,
+            "instructions": 14250,
+            "data_size": 0.0,
+            "dependencies": [
+                6,
+                4,
+                10,
+                8,
+                21,
+                23,
+                12,
+                25,
+                17,
+                27,
+                15,
+                29,
+                19
+            ],
+            "deadline": 0
+        },
+        {
+            "id": 3,
+            "instructions": 11857500,
+            "data_size": 40119.4,
+            "dependencies": [],
+            "deadline": 316
+        },
+        {
+            "id": 4,
+            "instructions": 2929500,
+            "data_size": 626.9,
+            "dependencies": [
+                3
+            ],
+            "deadline": 78
+        },
+        {
+            "id": 5,
+            "instructions": 47250,
+            "data_size": 0.0,
+            "dependencies": [
+                4
+            ],
+            "deadline": 1
+        },
+        {
+            "id": 6,
+            "instructions": 2886750,
+            "data_size": 694.8,
+            "dependencies": [
+                3
+            ],
+            "deadline": 76
+        },
+        {
+            "id": 7,
+            "instructions": 60000,
+            "data_size": 0.0,
+            "dependencies": [
+                6
+            ],
+            "deadline": 1
+        },
+        {
+            "id": 8,
+            "instructions": 2720250,
+            "data_size": 585.7,
+            "dependencies": [
+                3
+            ],
+            "deadline": 72
+        },
+        {
+            "id": 9,
+            "instructions": 54750,
+            "data_size": 0.0,
+            "dependencies": [
+                8
+            ],
+            "deadline": 1
+        },
+        {
+            "id": 10,
+            "instructions": 2421750,
+            "data_size": 536.9,
+            "dependencies": [
+                3
+            ],
+            "deadline": 64
+        },
+        {
+            "id": 11,
+            "instructions": 55500,
+            "data_size": 0.0,
+            "dependencies": [
+                10
+            ],
+            "deadline": 1
+        },
+        {
+            "id": 12,
+            "instructions": 4668750,
+            "data_size": 670.5,
+            "dependencies": [
+                3
+            ],
+            "deadline": 124
+        },
+        {
+            "id": 13,
+            "instructions": 106500,
+            "data_size": 0.0,
+            "dependencies": [
+                12
+            ],
+            "deadline": 2
+        },
+        {
+            "id": 14,
+            "instructions": 7268250,
+            "data_size": 40124.9,
+            "dependencies": [],
+            "deadline": 193
+        },
+        {
+            "id": 15,
+            "instructions": 3558000,
+            "data_size": 552.2,
+            "dependencies": [
+                14
+            ],
+            "deadline": 94
+        },
+        {
+            "id": 16,
+            "instructions": 114750,
+            "data_size": 0.0,
+            "dependencies": [
+                15
+            ],
+            "deadline": 3
+        },
+        {
+            "id": 17,
+            "instructions": 3420000,
+            "data_size": 452.4,
+            "dependencies": [
+                14
+            ],
+            "deadline": 91
+        },
+        {
+            "id": 18,
+            "instructions": 114750,
+            "data_size": 0.0,
+            "dependencies": [
+                17
+            ],
+            "deadline": 3
+        },
+        {
+            "id": 19,
+            "instructions": 2150250,
+            "data_size": 502.7,
+            "dependencies": [
+                14
+            ],
+            "deadline": 57
+        },
+        {
+            "id": 20,
+            "instructions": 102000,
+            "data_size": 0.0,
+            "dependencies": [
+                19
+            ],
+            "deadline": 2
+        },
+        {
+            "id": 21,
+            "instructions": 1842000,
+            "data_size": 624.2,
+            "dependencies": [
+                14
+            ],
+            "deadline": 49
+        },
+        {
+            "id": 22,
+            "instructions": 102000,
+            "data_size": 0.0,
+            "dependencies": [
+                21
+            ],
+            "deadline": 2
+        },
+        {
+            "id": 23,
+            "instructions": 2328750,
+            "data_size": 426.6,
+            "dependencies": [
+                14
+            ],
+            "deadline": 62
+        },
+        {
+            "id": 24,
+            "instructions": 107250,
+            "data_size": 0.0,
+            "dependencies": [
+                23
+            ],
+            "deadline": 2
+        },
+        {
+            "id": 25,
+            "instructions": 4115250,
+            "data_size": 515.8,
+            "dependencies": [
+                14
+            ],
+            "deadline": 109
+        },
+        {
+            "id": 26,
+            "instructions": 58500,
+            "data_size": 0.0,
+            "dependencies": [
+                25
+            ],
+            "deadline": 1
+        },
+        {
+            "id": 27,
+            "instructions": 1799249,
+            "data_size": 681.5,
+            "dependencies": [
+                14
+            ],
+            "deadline": 47
+        },
+        {
+            "id": 28,
+            "instructions": 82500,
+            "data_size": 0.0,
+            "dependencies": [
+                27
+            ],
+            "deadline": 2
+        },
+        {
+            "id": 29,
+            "instructions": 1984500,
+            "data_size": 441.4,
+            "dependencies": [
+                14
+            ],
+            "deadline": 52
+        },
+        {
+            "id": 30,
+            "instructions": 63750,
+            "data_size": 0.0,
+            "dependencies": [
+                29
+            ],
+            "deadline": 1
+        }
+    ]
+}

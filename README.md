@@ -113,6 +113,11 @@ Initialiser:
     Q-table ← InitialiserQLearningOperateurs([cxOnePoint, cxTwoPoint, cxUniform, cxOrdered])
     ReferencePoints ← GénérerPointsRéférence(K, d)  # K divisions sur d objectifs
     ÉvaluerFitness(P)
+    
+    # Initialisation des archives d'élitisme
+    MeilleuresSolutions ← { null pour chaque objectif }
+    MeilleuresValeurs ← { ∞ pour chaque objectif }
+    Historique ← [[] pour chaque objectif]
 
 Pour génération = 1 à MAX_GEN:
     # Phase d'adaptation
@@ -152,7 +157,48 @@ Pour génération = 1 à MAX_GEN:
     Combined ← P ∪ Offspring
     P ← NSGA-III(Combined, ReferencePoints, N)
     
-Retourner P
+    # Mise à jour des meilleures solutions (élitisme)
+    Pour chaque individu ind dans P:
+        makespan, latency, cost, energy ← ind.fitness.values
+        
+        Si makespan < MeilleuresValeurs['makespan']:
+            MeilleuresValeurs['makespan'] ← makespan
+            MeilleuresSolutions['makespan'] ← Cloner(ind)
+        
+        Si latency < MeilleuresValeurs['latency']:
+            MeilleuresValeurs['latency'] ← latency
+            MeilleuresSolutions['latency'] ← Cloner(ind)
+        
+        Si cost < MeilleuresValeurs['cost']:
+            MeilleuresValeurs['cost'] ← cost
+            MeilleuresSolutions['cost'] ← Cloner(ind)
+        
+        Si energy < MeilleuresValeurs['energy']:
+            MeilleuresValeurs['energy'] ← energy
+            MeilleuresSolutions['energy'] ← Cloner(ind)
+    
+    # Application de l'élitisme - réinsertion des meilleures solutions
+    Si génération > 0:
+        # Trier la population par somme des objectifs (approx. de dominance)
+        P ← TrierParSommeObjectifs(P)
+        
+        # Remplacer les pires individus par les meilleures solutions connues
+        Pour i, obj dans énumérer(['makespan', 'latency', 'cost', 'energy']):
+            Si MeilleuresSolutions[obj] ≠ null ET MeilleuresSolutions[obj] ∉ P:
+                P[-(i+1)] ← Cloner(MeilleuresSolutions[obj])  # Remplacer un des pires
+    
+    # Mise à jour de l'historique avec les meilleures valeurs connues
+    Pour i, obj dans énumérer(['makespan', 'latency', 'cost', 'energy']):
+        Historique[i].append(MeilleuresValeurs[obj])
+
+# Finalisation - s'assurer que les meilleures solutions sont dans la population finale
+Pour obj dans ['makespan', 'latency', 'cost', 'energy']:
+    Si MeilleuresSolutions[obj] ≠ null ET MeilleuresSolutions[obj] ∉ P:
+        idx ← random(0, |P|-1)
+        P[idx] ← Cloner(MeilleuresSolutions[obj])
+
+Retourner P, Historique
+
 ```
 
 ### Innovations clés

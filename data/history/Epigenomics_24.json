@@ -1,0 +1,930 @@
+{
+    "jobs": [
+        {
+            "id": "ID00000",
+            "namespace": "Genome",
+            "name": "fastqSplit_chr21",
+            "version": "1.0",
+            "runtime": 103.52,
+            "inputs": [
+                {
+                    "file": "chr210.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 446859355
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.0.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 85534312
+                },
+                {
+                    "file": "chr21.0.1.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 98262176
+                },
+                {
+                    "file": "chr21.0.2.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 80623179
+                },
+                {
+                    "file": "chr21.0.3.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 98592518
+                },
+                {
+                    "file": "chr21.0.4.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 83847170
+                }
+            ]
+        },
+        {
+            "id": "ID00001",
+            "namespace": "Genome",
+            "name": "filterContams_chr21",
+            "version": "1.0",
+            "runtime": 7.01,
+            "inputs": [
+                {
+                    "file": "chr21.0.0.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 85534312
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.0.nocontam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 44066037
+                },
+                {
+                    "file": "chr21.0.0.contam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 41468275
+                }
+            ]
+        },
+        {
+            "id": "ID00002",
+            "namespace": "Genome",
+            "name": "filterContams_chr21",
+            "version": "1.0",
+            "runtime": 8.23,
+            "inputs": [
+                {
+                    "file": "chr21.0.1.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 98262176
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.1.nocontam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 48142335
+                },
+                {
+                    "file": "chr21.0.1.contam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 50119841
+                }
+            ]
+        },
+        {
+            "id": "ID00003",
+            "namespace": "Genome",
+            "name": "filterContams_chr21",
+            "version": "1.0",
+            "runtime": 8.15,
+            "inputs": [
+                {
+                    "file": "chr21.0.2.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 80623179
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.2.nocontam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 38553524
+                },
+                {
+                    "file": "chr21.0.2.contam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 42069655
+                }
+            ]
+        },
+        {
+            "id": "ID00004",
+            "namespace": "Genome",
+            "name": "filterContams_chr21",
+            "version": "1.0",
+            "runtime": 9.25,
+            "inputs": [
+                {
+                    "file": "chr21.0.3.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 98592518
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.3.nocontam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 47435716
+                },
+                {
+                    "file": "chr21.0.3.contam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 51156802
+                }
+            ]
+        },
+        {
+            "id": "ID00005",
+            "namespace": "Genome",
+            "name": "filterContams_chr21",
+            "version": "1.0",
+            "runtime": 11.89,
+            "inputs": [
+                {
+                    "file": "chr21.0.4.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 83847170
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.4.nocontam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 43314524
+                },
+                {
+                    "file": "chr21.0.4.contam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 40532646
+                }
+            ]
+        },
+        {
+            "id": "ID00006",
+            "namespace": "Genome",
+            "name": "sol2sanger_chr21",
+            "version": "1.0",
+            "runtime": 2.36,
+            "inputs": [
+                {
+                    "file": "chr21.0.0.nocontam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 44066037
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.0.nocontam.fq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 24613282
+                }
+            ]
+        },
+        {
+            "id": "ID00007",
+            "namespace": "Genome",
+            "name": "sol2sanger_chr21",
+            "version": "1.0",
+            "runtime": 3.54,
+            "inputs": [
+                {
+                    "file": "chr21.0.1.nocontam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 48142335
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.1.nocontam.fq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 44753970
+                }
+            ]
+        },
+        {
+            "id": "ID00008",
+            "namespace": "Genome",
+            "name": "sol2sanger_chr21",
+            "version": "1.0",
+            "runtime": 3.26,
+            "inputs": [
+                {
+                    "file": "chr21.0.2.nocontam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 38553524
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.2.nocontam.fq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 24969343
+                }
+            ]
+        },
+        {
+            "id": "ID00009",
+            "namespace": "Genome",
+            "name": "sol2sanger_chr21",
+            "version": "1.0",
+            "runtime": 3.06,
+            "inputs": [
+                {
+                    "file": "chr21.0.3.nocontam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 47435716
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.3.nocontam.fq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 36701822
+                }
+            ]
+        },
+        {
+            "id": "ID00010",
+            "namespace": "Genome",
+            "name": "sol2sanger_chr21",
+            "version": "1.0",
+            "runtime": 5.02,
+            "inputs": [
+                {
+                    "file": "chr21.0.4.nocontam.sfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 43314524
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.4.nocontam.fq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 37310027
+                }
+            ]
+        },
+        {
+            "id": "ID00011",
+            "namespace": "Genome",
+            "name": "fastq2bfq_chr21",
+            "version": "1.0",
+            "runtime": 4.25,
+            "inputs": [
+                {
+                    "file": "chr21.0.0.nocontam.fq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 24613282
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.0.nocontam.bfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 6918721
+                }
+            ]
+        },
+        {
+            "id": "ID00012",
+            "namespace": "Genome",
+            "name": "fastq2bfq_chr21",
+            "version": "1.0",
+            "runtime": 5.91,
+            "inputs": [
+                {
+                    "file": "chr21.0.1.nocontam.fq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 44753970
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.1.nocontam.bfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 10323313
+                }
+            ]
+        },
+        {
+            "id": "ID00013",
+            "namespace": "Genome",
+            "name": "fastq2bfq_chr21",
+            "version": "1.0",
+            "runtime": 4.03,
+            "inputs": [
+                {
+                    "file": "chr21.0.2.nocontam.fq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 24969343
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.2.nocontam.bfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 5956867
+                }
+            ]
+        },
+        {
+            "id": "ID00014",
+            "namespace": "Genome",
+            "name": "fastq2bfq_chr21",
+            "version": "1.0",
+            "runtime": 4.72,
+            "inputs": [
+                {
+                    "file": "chr21.0.3.nocontam.fq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 36701822
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.3.nocontam.bfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 9015905
+                }
+            ]
+        },
+        {
+            "id": "ID00015",
+            "namespace": "Genome",
+            "name": "fastq2bfq_chr21",
+            "version": "1.0",
+            "runtime": 5.16,
+            "inputs": [
+                {
+                    "file": "chr21.0.4.nocontam.fq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 37310027
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.4.nocontam.bfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 9039432
+                }
+            ]
+        },
+        {
+            "id": "ID00016",
+            "namespace": "Genome",
+            "name": "map_chr21",
+            "version": "1.0",
+            "runtime": 2830.54,
+            "inputs": [
+                {
+                    "file": "chr21.BS.bfa",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 1249174122
+                },
+                {
+                    "file": "chr21.0.0.nocontam.bfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 6918721
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.0.nocontam.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 7520348
+                }
+            ]
+        },
+        {
+            "id": "ID00017",
+            "namespace": "Genome",
+            "name": "map_chr21",
+            "version": "1.0",
+            "runtime": 3196.4,
+            "inputs": [
+                {
+                    "file": "chr21.BS.bfa",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 1249174122
+                },
+                {
+                    "file": "chr21.0.1.nocontam.bfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 10323313
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.1.nocontam.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 11220992
+                }
+            ]
+        },
+        {
+            "id": "ID00018",
+            "namespace": "Genome",
+            "name": "map_chr21",
+            "version": "1.0",
+            "runtime": 2425.31,
+            "inputs": [
+                {
+                    "file": "chr21.BS.bfa",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 1249174122
+                },
+                {
+                    "file": "chr21.0.2.nocontam.bfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 5956867
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.2.nocontam.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 6474855
+                }
+            ]
+        },
+        {
+            "id": "ID00019",
+            "namespace": "Genome",
+            "name": "map_chr21",
+            "version": "1.0",
+            "runtime": 3623.08,
+            "inputs": [
+                {
+                    "file": "chr21.BS.bfa",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 1249174122
+                },
+                {
+                    "file": "chr21.0.3.nocontam.bfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 9015905
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.3.nocontam.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 9799896
+                }
+            ]
+        },
+        {
+            "id": "ID00020",
+            "namespace": "Genome",
+            "name": "map_chr21",
+            "version": "1.0",
+            "runtime": 4062.96,
+            "inputs": [
+                {
+                    "file": "chr21.BS.bfa",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 1249174122
+                },
+                {
+                    "file": "chr21.0.4.nocontam.bfq",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 9039432
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.0.4.nocontam.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 9825469
+                }
+            ]
+        },
+        {
+            "id": "ID00021",
+            "namespace": "Genome",
+            "name": "mapMerge_chr21",
+            "version": "1.0",
+            "runtime": 17.23,
+            "inputs": [
+                {
+                    "file": "chr21.0.0.nocontam.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 7520348
+                },
+                {
+                    "file": "chr21.0.1.nocontam.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 11220992
+                },
+                {
+                    "file": "chr21.0.2.nocontam.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 6474855
+                },
+                {
+                    "file": "chr21.0.3.nocontam.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 9799896
+                },
+                {
+                    "file": "chr21.0.4.nocontam.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 9825469
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.nocontam.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 42303358
+                },
+                {
+                    "file": "chr21.nocontam.map.zr",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 1594189
+                },
+                {
+                    "file": "chr21.nocontam.map.vm",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 173647
+                }
+            ]
+        },
+        {
+            "id": "ID00022",
+            "namespace": "Genome",
+            "name": "maqindex_chr21",
+            "version": "1.0",
+            "runtime": 0.05,
+            "inputs": [
+                {
+                    "file": "chr21.nocontam.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 42303358
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.nocontam.chr.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 641552
+                }
+            ]
+        },
+        {
+            "id": "ID00023",
+            "namespace": "Genome",
+            "name": "pileup_chr21",
+            "version": "1.0",
+            "runtime": 1375.22,
+            "inputs": [
+                {
+                    "file": "chr21.BSnull.bfa",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 1249174122
+                },
+                {
+                    "file": "chr21.nocontam.chr.map",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 641552
+                }
+            ],
+            "outputs": [
+                {
+                    "file": "chr21.nocontam.chr.pileup",
+                    "register": true,
+                    "transfer": true,
+                    "optional": false,
+                    "type": "data",
+                    "size": 3795582
+                }
+            ]
+        }
+    ],
+    "dependencies": [
+        {
+            "from": "ID00000",
+            "to": "ID00001"
+        },
+        {
+            "from": "ID00000",
+            "to": "ID00002"
+        },
+        {
+            "from": "ID00000",
+            "to": "ID00003"
+        },
+        {
+            "from": "ID00000",
+            "to": "ID00004"
+        },
+        {
+            "from": "ID00000",
+            "to": "ID00005"
+        },
+        {
+            "from": "ID00001",
+            "to": "ID00006"
+        },
+        {
+            "from": "ID00002",
+            "to": "ID00007"
+        },
+        {
+            "from": "ID00003",
+            "to": "ID00008"
+        },
+        {
+            "from": "ID00004",
+            "to": "ID00009"
+        },
+        {
+            "from": "ID00005",
+            "to": "ID00010"
+        },
+        {
+            "from": "ID00006",
+            "to": "ID00011"
+        },
+        {
+            "from": "ID00007",
+            "to": "ID00012"
+        },
+        {
+            "from": "ID00008",
+            "to": "ID00013"
+        },
+        {
+            "from": "ID00009",
+            "to": "ID00014"
+        },
+        {
+            "from": "ID00010",
+            "to": "ID00015"
+        },
+        {
+            "from": "ID00011",
+            "to": "ID00016"
+        },
+        {
+            "from": "ID00012",
+            "to": "ID00017"
+        },
+        {
+            "from": "ID00013",
+            "to": "ID00018"
+        },
+        {
+            "from": "ID00014",
+            "to": "ID00019"
+        },
+        {
+            "from": "ID00015",
+            "to": "ID00020"
+        },
+        {
+            "from": "ID00020",
+            "to": "ID00021"
+        },
+        {
+            "from": "ID00016",
+            "to": "ID00021"
+        },
+        {
+            "from": "ID00017",
+            "to": "ID00021"
+        },
+        {
+            "from": "ID00018",
+            "to": "ID00021"
+        },
+        {
+            "from": "ID00019",
+            "to": "ID00021"
+        },
+        {
+            "from": "ID00021",
+            "to": "ID00022"
+        },
+        {
+            "from": "ID00022",
+            "to": "ID00023"
+        }
+    ]
+}

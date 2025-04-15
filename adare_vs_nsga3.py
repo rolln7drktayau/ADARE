@@ -262,6 +262,20 @@ def run_adare():
     
     q_crossover = QLearningCrossover()
     
+    # Archive pour stocker les meilleures solutions par objectif
+    best_solutions = {
+        'makespan': None,
+        'latency': None,
+        'cost': None,
+        'energy': None
+    }
+    best_values = {
+        'makespan': float('inf'),
+        'latency': float('inf'),
+        'cost': float('inf'),
+        'energy': float('inf')
+    }
+    
     for gen in range(MAX_GEN):
         try:
             # Nouvelle méthode de sélection sans crowding_dist
@@ -293,12 +307,45 @@ def run_adare():
                 if not hasattr(ind.fitness, 'crowding_dist'):
                     ind.fitness.crowding_dist = 0.0  # Initialiser si nécessaire
             
+            # Sélection avec élitisme
             population = tools.selNSGA3(combined, POP_SIZE, reference_points)
             
-            # Mise à jour de l'historique
-            best_ind = tools.selBest(population, 1)[0]
-            for i in range(len(OBJ_NAMES)):
-                history[i].append(best_ind.fitness.values[i])
+            # Mise à jour des meilleures solutions par objectif
+            for ind in population:
+                makespan, latency, cost, energy = ind.fitness.values
+                
+                if makespan < best_values['makespan']:
+                    best_values['makespan'] = makespan
+                    best_solutions['makespan'] = toolbox.clone(ind)
+                
+                if latency < best_values['latency']:
+                    best_values['latency'] = latency
+                    best_solutions['latency'] = toolbox.clone(ind)
+                
+                if cost < best_values['cost']:
+                    best_values['cost'] = cost
+                    best_solutions['cost'] = toolbox.clone(ind)
+                
+                if energy < best_values['energy']:
+                    best_values['energy'] = energy
+                    best_solutions['energy'] = toolbox.clone(ind)
+            
+            # Assurer l'élitisme en remplaçant les pires individus par les meilleurs connus
+            if gen > 0:  # Commencer après la première génération
+                # Trier la population par dominance
+                population.sort(key=lambda ind: sum(ind.fitness.values))
+                
+                # Remplacer les 4 pires individus par les meilleurs connus pour chaque objectif
+                for i, obj in enumerate(['makespan', 'latency', 'cost', 'energy']):
+                    if best_solutions[obj] is not None:
+                        # Vérifier si la meilleure solution n'est pas déjà dans la population
+                        if best_solutions[obj] not in population:
+                            # Remplacer un des pires individus
+                            population[-(i+1)] = toolbox.clone(best_solutions[obj])
+            
+            # Mise à jour de l'historique avec les meilleures valeurs connues
+            for i, obj in enumerate(['makespan', 'latency', 'cost', 'energy']):
+                history[i].append(best_values[obj])
                 
         except Exception as e:
             print(f"Erreur génération {gen}: {str(e)}")
@@ -306,6 +353,13 @@ def run_adare():
             for i in range(len(OBJ_NAMES)):
                 history[i].append(history[i][-1] if history[i] else 0)
             continue
+    
+    # Ajouter les meilleures solutions connues à la population finale
+    for obj in ['makespan', 'latency', 'cost', 'energy']:
+        if best_solutions[obj] is not None and best_solutions[obj] not in population:
+            # Remplacer un individu aléatoire
+            idx = random.randint(0, len(population) - 1)
+            population[idx] = best_solutions[obj]
     
     return population, history, time.time() - start_time
 
@@ -362,7 +416,7 @@ def run_nsga3():
             # Sélection
             population = tools.selNSGA3(population + offspring, POP_SIZE, reference_points)
             
-            # Enregistrement des métriques
+            # Enregistrement des métriques : Historique NSGA-III
             best_ind = tools.selBest(population, 1)[0]
             for i in range(len(OBJ_NAMES)):
                 history[i].append(best_ind.fitness.values[i])
@@ -633,36 +687,48 @@ def visualize_schedule(individual, algorithm_name=""):
     total_energy = 0
     latencies = []
     
-    for task_id, node_id in enumerate(individual):
-        task = TASKS[task_id]
+    # Tri topologique des tâches selon les dépendances
+    sorted_tasks = []
+    visited = set()
+    
+    def visit(task_id):
+        if task_id in visited:
+            return
+        visited.add(task_id)
+        for dep in TASKS[task_id]['dependencies']:
+            # Ajuster l'indice pour correspondre à l'index de base 0
+            dep_idx = dep - 1
+            if dep_idx >= 0 and dep_idx < len(TASKS):  # Vérifier que l'indice est valide
+                visit(dep_idx)
+        sorted_tasks.append(task_id)
+    
+    for i in range(len(TASKS)):
+        visit(i)
+    
+    # Ordonnancement des tâches
+    for task_id in sorted_tasks:
+        node_id = individual[task_id]
         node = NODES[node_id]
+        task = TASKS[task_id]
         
-        # Calculate execution time
-        exec_time = task['instructions'] / node['processing_rate']
-        
-        # Calculate cost
-        exec_time_hours = exec_time / 3600
-        task_cost = exec_time_hours * node['processing_cost']
-        total_cost += task_cost
-        
-        # Calculate energy
-        task_energy = exec_time * node['working_power']
-        total_energy += task_energy
-        
-        # Handle dependencies
-        dependencies_ready_time = 0
+        # Calcul du temps de début
+        start_time = 0
         if task['dependencies']:
-            for dep_id in task['dependencies']:
-                dep_end_time = task_schedule[dep_id-1]['end']
-                dependencies_ready_time = max(dependencies_ready_time, dep_end_time)
+            # Vérifier que toutes les dépendances sont dans task_schedule
+            valid_deps = [dep-1 for dep in task['dependencies'] if (dep-1) in task_schedule]
+            if valid_deps:
+                start_time = max(task_schedule[dep]['end'] for dep in valid_deps)
         
-        start_time = max(device_available_time[node_id], dependencies_ready_time)
-        end_time = start_time + exec_time
+        # Utiliser le temps de disponibilité du nœud si nécessaire
+        start_time = max(start_time, device_available_time[node_id])
         
-        # Calculate latency
-        ideal_start = max([task_schedule[dep_id-1]['exec_time'] for dep_id in task['dependencies']], default=0)
-        latencies.append(end_time - ideal_start)
+        # Calcul des temps d'exécution et de transfert
+        exec_time = task['instructions'] / node['processing_rate']
+        transfer_time = task['data_size'] / node['uplink_bandwidth']
+        end_time = start_time + exec_time + transfer_time
         
+        # Mise à jour des disponibilités
+        device_available_time[node_id] = end_time
         task_schedule[task_id] = {
             'task_id': task_id + 1,
             'node_id': node_id,
@@ -672,7 +738,19 @@ def visualize_schedule(individual, algorithm_name=""):
             'exec_time': exec_time
         }
         
-        device_available_time[node_id] = end_time
+        # Calcul des métriques
+        if task['dependencies']:
+            valid_deps = [dep-1 for dep in task['dependencies'] if (dep-1) in task_schedule]
+            if valid_deps:
+                ideal_start = max([task_schedule[dep]['exec_time'] for dep in valid_deps], default=0)
+            else:
+                ideal_start = 0
+        else:
+            ideal_start = 0
+        
+        latencies.append(end_time - ideal_start)
+        total_cost += exec_time * node['processing_cost']
+        total_energy += exec_time * node['working_power']
     
     # Visualization
     fig, ax = plt.subplots(figsize=(12, 8))
@@ -729,12 +807,6 @@ def visualize_schedule(individual, algorithm_name=""):
     makespan = max(task_info['end'] for task_info in task_schedule.values())
     avg_latency = np.mean(latencies)
     
-    # print(f"\nMétriques pour {algorithm_name}:")
-    # print(f"Makespan: {makespan:.2f}")
-    # print(f"Latence moyenne: {avg_latency:.2f}")
-    # print(f"Coût total: {total_cost:.7f}")
-    # print(f"Énergie totale: {total_energy:.2f}")
-
     return task_schedule
 
 # ==================================================================
@@ -1191,6 +1263,13 @@ if __name__ == "__main__":
         
         # Sauvegarde du rapport
         save_report(comparison_results, adare_metrics, nsga_metrics, ai_analysis)
-        print(f"\nRapport sauvegardé dans {output_reports_dir}/comparison_report.txt")
+        # print(f"\nRapport sauvegardé dans {output_reports_dir}/comparison_report.txt")
+
+        if len(sys.argv) > 1:
+            workflow_type = sys.argv[1].split('_')[0]
+            output_dir = f'output/{workflow_type}/reports'
+        else:
+            output_dir = 'output/Default/reports'
+            print(f"\nRapport sauvegardé dans {output_dir}/comparison_report.txt")
     
     print("\n=== Exécution terminée ===")
