@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 700">
+  <!-- Fond -->
+  <rect width="800" height="700" fill="#f8f9fa" />
+  
+  <!-- Système de coordonnées 3D -->
+  <g stroke="#000" stroke-width="2">
+    <!-- Axes -->
+    <line x1="150" y1="500" x2="650" y2="500" /> <!-- Axe X -->
+    <line x1="150" y1="500" x2="150" y2="100" /> <!-- Axe Y -->
+    <line x1="150" y1="500" x2="50" y2="600" />  <!-- Axe Z -->
+    
+    <!-- Flèches des axes -->
+    <polygon points="650,500 640,495 640,505" />
+    <polygon points="150,100 145,110 155,110" />
+    <polygon points="50,600 60,595 55,605" />
+    
+    <!-- Noms des axes -->
+    <text x="670" y="505" font-family="Arial" font-size="16">Goût</text>
+    <text x="140" y="90" font-family="Arial" font-size="16">Santé</text>
+    <text x="30" y="620" font-family="Arial" font-size="16">Prix</text>
+  </g>
+  
+  <!-- Simplexe normalisé (surface triangulaire) -->
+  <polygon points="150,500 650,500 150,100" fill="rgba(220,220,250,0.3)" stroke="#aaa" stroke-width="1" />
+  <polygon points="150,500 50,600 150,100" fill="rgba(220,250,220,0.3)" stroke="#aaa" stroke-width="1" />
+  <polygon points="150,500 650,500 50,600" fill="rgba(250,220,220,0.3)" stroke="#aaa" stroke-width="1" />
+  
+  <!-- Points de référence sur le simplexe normalisé -->
+  <!-- Distribution uniforme des points de référence -->
+  
+  <!-- Points aux extrêmes (spécialistes) -->
+  <circle cx="650" cy="500" r="8" fill="#e74c3c" /> <!-- Max Goût -->
+  <circle cx="150" cy="100" r="8" fill="#2ecc71" /> <!-- Max Santé -->
+  <circle cx="50" cy="600" r="8" fill="#3498db" /> <!-- Max Prix abordable -->
+  
+  <!-- Points intermédiaires (compromis entre 2 critères) -->
+  <circle cx="400" cy="500" r="6" fill="#e74c3c" opacity="0.8" /> <!-- Goût/Prix -->
+  <circle cx="525" cy="400" r="6" fill="#e74c3c" opacity="0.8" /> <!-- Goût/Prix -->
+  <circle cx="275" cy="500" r="6" fill="#e74c3c" opacity="0.8" /> <!-- Goût/Prix -->
+  
+  <circle cx="150" cy="300" r="6" fill="#2ecc71" opacity="0.8" /> <!-- Santé/Goût -->
+  <circle cx="400" cy="300" r="6" fill="#2ecc71" opacity="0.8" /> <!-- Santé/Goût -->
+  <circle cx="275" cy="200" r="6" fill="#2ecc71" opacity="0.8" /> <!-- Santé/Goût -->
+  
+  <circle cx="100" cy="550" r="6" fill="#3498db" opacity="0.8" /> <!-- Prix/Santé -->
+  <circle cx="100" cy="350" r="6" fill="#3498db" opacity="0.8" /> <!-- Prix/Santé -->
+  <circle cx="100" cy="450" r="6" fill="#3498db" opacity="0.8" /> <!-- Prix/Santé -->
+  
+  <!-- Points équilibrés (au centre) -->
+  <circle cx="300" cy="400" r="7" fill="#9b59b6" /> <!-- Équilibré -->
+  <circle cx="200" cy="400" r="7" fill="#9b59b6" /> <!-- Équilibré -->
+  <circle cx="250" cy="350" r="7" fill="#9b59b6" /> <!-- Équilibré -->
+  <circle cx="200" cy="300" r="7" fill="#9b59b6" /> <!-- Équilibré -->
+  
+  <!-- Solutions trouvées (exemple) -->
+  <g>
+    <!-- Front Pareto (approximation) -->
+    <path d="M650,500 C500,300 300,200 150,100" stroke="#000" stroke-width="1.5" stroke-dasharray="5,5" fill="none" />
+    <path d="M150,100 C120,200 80,400 50,600" stroke="#000" stroke-width="1.5" stroke-dasharray="5,5" fill="none" />
+    <path d="M650,500 C500,500 200,580 50,600" stroke="#000" stroke-width="1.5" stroke-dasharray="5,5" fill="none" />
+    
+    <!-- Solutions trouvées par NSGA-III -->
+    <circle cx="600" cy="470" r="5" fill="#e74c3c" stroke="#000" stroke-width="1" /> <!-- Solution proche du max Goût -->
+    <circle cx="160" cy="120" r="5" fill="#2ecc71" stroke="#000" stroke-width="1" /> <!-- Solution proche du max Santé -->
+    <circle cx="70" cy="580" r="5" fill="#3498db" stroke="#000" stroke-width="1" /> <!-- Solution proche du max Prix -->
+    
+    <circle cx="450" cy="400" r="5" fill="#f39c12" stroke="#000" stroke-width="1" /> <!-- Compromis Goût-Santé -->
+    <circle cx="300" cy="250" r="5" fill="#f39c12" stroke="#000" stroke-width="1" /> <!-- Compromis Goût-Santé -->
+    <circle cx="120" cy="350" r="5" fill="#f39c12" stroke="#000" stroke-width="1" /> <!-- Compromis Santé-Prix -->
+    <circle cx="350" cy="480" r="5" fill="#f39c12" stroke="#000" stroke-width="1" /> <!-- Compromis Goût-Prix -->
+    
+    <circle cx="250" cy="350" r="5" fill="#9b59b6" stroke="#000" stroke-width="1" /> <!-- Solution équilibrée -->
+    <circle cx="300" cy="400" r="5" fill="#9b59b6" stroke="#000" stroke-width="1" /> <!-- Solution équilibrée -->
+  </g>
+  
+  <!-- Association entre points de référence et solutions -->
+  <g stroke="#666" stroke-width="0.5" stroke-dasharray="2,2">
+    <line x1="650" y1="500" x2="600" y2="470" />
+    <line x1="150" y1="100" x2="160" y2="120" />
+    <line x1="50" y1="600" x2="70" y2="580" />
+    <line x1="525" y1="400" x2="450" y2="400" />
+    <line x1="275" y1="200" x2="300" y2="250" />
+    <line x1="100" y1="350" x2="120" y2="350" />
+    <line x1="275" y1="500" x2="350" y2="480" />
+    <line x1="250" y1="350" x2="250" y2="350" />
+    <line x1="300" y1="400" x2="300" y2="400" />
+  </g>
+  
+  <!-- Légende -->
+  <g font-family="Arial" font-size="14" transform="translate(450, 100)">
+    <text x="0" y="0" font-size="16" font-weight="bold">Légende</text>
+    
+    <circle cx="10" cy="25" r="8" fill="#e74c3c" />
+    <text x="25" y="30">Points de référence (Goût)</text>
+    
+    <circle cx="10" cy="55" r="8" fill="#2ecc71" />
+    <text x="25" y="60">Points de référence (Santé)</text>
+    
+    <circle cx="10" cy="85" r="8" fill="#3498db" />
+    <text x="25" y="90">Points de référence (Prix)</text>
+    
+    <circle cx="10" cy="115" r="8" fill="#9b59b6" />
+    <text x="25" y="120">Points équilibrés</text>
+    
+    <circle cx="10" cy="145" r="5" fill="#f39c12" stroke="#000" stroke-width="1" />
+    <text x="25" y="150">Solutions trouvées</text>
+    
+    <path d="M0,175 L20,175" stroke="#000" stroke-width="1.5" stroke-dasharray="5,5" />
+    <text x="25" y="180">Front de Pareto</text>
+    
+    <line x1="0" y1="205" x2="20" y2="205" stroke="#666" stroke-width="0.5" stroke-dasharray="2,2" />
+    <text x="25" y="210">Association point-solution</text>
+  </g>
+  
+  <!-- Titre -->
+  <text x="400" y="50" font-family="Arial" font-size="22" font-weight="bold" text-anchor="middle">Points de référence dans NSGA-III</text>
+  <text x="400" y="80" font-family="Arial" font-size="16" text-anchor="middle">Optimisation de recettes de glaces (Goût, Santé, Prix)</text>
+  
+  <!-- Explications -->
+  <g font-family="Arial" font-size="14">
+    <text x="150" y="650">Les points de référence guident la recherche de solutions diversifiées sur le front de Pareto.</text>
+    <text x="150" y="675">NSGA-III priorise les solutions proches des points de référence pour maintenir la diversité.</text>
+  </g>
+</svg>

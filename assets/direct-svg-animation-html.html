@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Optimisation Multi-objectif : Fête d'Anniversaire</title>
+  <style>
+    body { 
+      margin: 0; 
+      padding: 20px; 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 1400px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Visualisation de l'Optimisation Multi-objectif pour une Fête d'Anniversaire</h1>
+    
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:bx="https://boxy-svg.com" width="1400" height="660">
+      <defs>
+        <bx:export>
+          <bx:file format="svg" excluded="true"/>
+        </bx:export>
+      </defs>
+      <text x="859.289" y="106" text-anchor="middle" class="title" style="white-space: pre; font-family: Arial, sans-serif; font-size: 20px; font-weight: 700; line-height: 32px; perspective-origin: 293.75px 19.9844px;">Optimisation Multi-objectif : Fête d'Anniversaire</text>
+      <text x="859.289" y="131" text-anchor="middle" class="subtitle" style="white-space: pre; font-family: Arial, sans-serif; font-style: italic; perspective-origin: 253.125px 32.5px; font-size: 16px;">Équilibrer 4 objectifs en conflit</text>
+      <g transform="matrix(1, 0, 0, 1, 859.289063, 463)">
+        <circle cx="0" cy="0" r="50" class="radar-circle" style="fill: none; stroke: rgb(204, 204, 204); stroke-dasharray: 5px, 5px;"/>
+        <circle cx="0" cy="0" r="100" class="radar-circle" style="fill: none; stroke: rgb(204, 204, 204); stroke-dasharray: 5px, 5px;"/>
+        <circle cx="0" cy="0" r="150" class="radar-circle" style="fill: none; stroke: rgb(204, 204, 204); stroke-dasharray: 5px, 5px;"/>
+        <circle cx="0" cy="0" r="200" class="radar-circle" style="fill: none; stroke: rgb(204, 204, 204); stroke-dasharray: 5px, 5px;"/>
+        <line x1="0" y1="0" x2="0" y2="-200" class="radar-axis" style="stroke: rgb(153, 153, 153);"/>
+        <line x1="0" y1="0" x2="200" y2="0" class="radar-axis" style="stroke: rgb(153, 153, 153);"/>
+        <line x1="0" y1="0" x2="0" y2="200" class="radar-axis" style="stroke: rgb(153, 153, 153);"/>
+        <line x1="0" y1="0" x2="-200" y2="0" class="radar-axis" style="stroke: rgb(153, 153, 153);"/>
+        <text x="0" y="-210" text-anchor="middle" class="axis-label" style="white-space: pre; font-family: Arial, sans-serif; font-size: 14px; font-weight: 700; line-height: 22.4px; perspective-origin: 6.25px -104.984px;">Amis</text>
+        <text x="210" y="0" text-anchor="start" alignment-baseline="middle" class="axis-label" style="white-space: pre; font-family: Arial, sans-serif; font-size: 14px; font-weight: 700; line-height: 22.4px; perspective-origin: 117.484px 0px;">Jeux</text>
+        <text x="0" y="220" text-anchor="middle" class="axis-label" style="white-space: pre; font-family: Arial, sans-serif; font-size: 14px; font-weight: 700; line-height: 22.4px; perspective-origin: 9.375px 110px;">Snacks</text>
+        <text x="-210" y="0" text-anchor="end" alignment-baseline="middle" class="axis-label" style="white-space: pre; font-family: Arial, sans-serif; font-size: 14px; font-weight: 700; line-height: 22.4px;">Budget (économies)</text>
+        <polygon class="radar-area" id="radar-polygon" style="fill: rgba(65, 105, 225, 0.5); stroke: rgb(65, 105, 225); stroke-width: 2px;">
+          <animate attributeName="points" dur="20s" repeatCount="indefinite" values="0,-120 120,0 0,100 -140,0;
+                    0,-180 150,0 0,80 -70,0;
+                    0,-100 180,0 0,120 -40,0;
+                    0,-150 90,0 0,160 -100,0;
+                    0,-80 110,0 0,170 -130,0;
+                    0,-120 120,0 0,100 -140,0" calcMode="spline" keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1" keySplines="0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1"/>
+        </polygon>
+        <circle id="amis-point" r="6" class="radar-point" style="fill: rgb(255, 99, 71); stroke: rgb(200, 58, 46); stroke-width: 2px;">
+          <animate attributeName="cy" dur="20s" repeatCount="indefinite" values="-120; -180; -100; -150; -80; -120" calcMode="spline" keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1" keySplines="0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1"/>
+          <animate attributeName="cx" dur="20s" repeatCount="indefinite" values="0; 0; 0; 0; 0; 0"/>
+        </circle>
+        <circle id="jeux-point" r="6" class="radar-point" style="fill: rgb(255, 99, 71); stroke: rgb(200, 58, 46); stroke-width: 2px;">
+          <animate attributeName="cx" dur="20s" repeatCount="indefinite" values="120; 150; 180; 90; 110; 120" calcMode="spline" keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1" keySplines="0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1"/>
+          <animate attributeName="cy" dur="20s" repeatCount="indefinite" values="0; 0; 0; 0; 0; 0"/>
+        </circle>
+        <circle id="snacks-point" r="6" class="radar-point" style="fill: rgb(255, 99, 71); stroke: rgb(200, 58, 46); stroke-width: 2px;">
+          <animate attributeName="cy" dur="20s" repeatCount="indefinite" values="100; 80; 120; 160; 170; 100" calcMode="spline" keyTimes="0; 

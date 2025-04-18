@@ -8,6 +8,7 @@ from deap import algorithms, base, creator, tools # type: ignore
 # Fix for pymoo imports
 from pymoo.indicators.hv import Hypervolume # type: ignore
 from scipy.spatial.distance import directed_hausdorff # type: ignore
+from pymoo.indicators.igd import IGD # type: ignore
 from functools import partial # type: ignore
 import matplotlib.pyplot as plt # type: ignore
 from mpl_toolkits.mplot3d import Axes3D # type: ignore
@@ -437,12 +438,19 @@ def calculate_metrics(population, true_pareto=None):
     hv_value = hv.do(np.array([ind.fitness.values for ind in population]))
     
     # Hausdorff Distance
-    hausdorff_value = None
+    # hausdorff_value = None
+    # if true_pareto is not None:
+    #     pop_front = np.array([ind.fitness.values for ind in population])
+    #     hausdorff_1 = directed_hausdorff(pop_front, true_pareto)[0]
+    #     hausdorff_2 = directed_hausdorff(true_pareto, pop_front)[0]
+    #     hausdorff_value = max(hausdorff_1, hausdorff_2)
+
+    # IGD - Modified for newer pymoo
     if true_pareto is not None:
-        pop_front = np.array([ind.fitness.values for ind in population])
-        hausdorff_1 = directed_hausdorff(pop_front, true_pareto)[0]
-        hausdorff_2 = directed_hausdorff(true_pareto, pop_front)[0]
-        hausdorff_value = max(hausdorff_1, hausdorff_2)
+        igd_calc = IGD(true_pareto)
+        igd_value = igd_calc.do(np.array([ind.fitness.values for ind in population]))
+    else:
+        igd_value = None
     
     # Spread (mesure de diversité)
     front = np.array([ind.fitness.values for ind in population])
@@ -452,7 +460,7 @@ def calculate_metrics(population, true_pareto=None):
     else:
         spread = 0.0
     
-    return hv_value, hausdorff_value, spread
+    return hv_value, igd_value, spread
 
 def adaptive_hyperparameter_tuning(initial_config):
     """Fonction d'auto-réglage des hyperparamètres pour ADARE"""
@@ -576,8 +584,8 @@ def adaptive_hyperparameter_tuning(initial_config):
 def run_comparison(runs=10):
     """Exécute la comparaison entre ADARE et NSGA-III sur plusieurs runs"""
     metrics = {
-        'adare': {'hv': [], 'hausdorff': [], 'spread': [], 'time': []},
-        'nsga3': {'hv': [], 'hausdorff': [], 'spread': [], 'time': []}
+        'adare': {'hv': [], 'igd': [], 'spread': [], 'time': []},
+        'nsga3': {'hv': [], 'igd': [], 'spread': [], 'time': []}
     }
     
     try:
@@ -604,9 +612,9 @@ def run_comparison(runs=10):
             start = time.time()
             adare_pop, _, _ = run_adare()
             adare_time = time.time() - start
-            hv, hd, sp = calculate_metrics(adare_pop, reference_front)
+            hv, igd, sp = calculate_metrics(adare_pop, reference_front)
             metrics['adare']['hv'].append(hv)
-            metrics['adare']['hausdorff'].append(hd)
+            metrics['adare']['igd'].append(igd)
             metrics['adare']['spread'].append(sp)
             metrics['adare']['time'].append(adare_time)
             
@@ -614,22 +622,20 @@ def run_comparison(runs=10):
             start = time.time()
             nsga_pop, _, _ = run_nsga3()
             nsga_time = time.time() - start
-            hv, hd, sp = calculate_metrics(nsga_pop, reference_front)
+            hv, igd, sp = calculate_metrics(nsga_pop, reference_front)
             metrics['nsga3']['hv'].append(hv)
-            metrics['nsga3']['hausdorff'].append(hd)
+            metrics['nsga3']['igd'].append(igd)
             metrics['nsga3']['spread'].append(sp)
             metrics['nsga3']['time'].append(nsga_time)
         
         # Préparation des résultats
         results = []
-        for metric in ['hv', 'hausdorff', 'spread', 'time']:
+        for metric in ['hv', 'igd', 'spread', 'time']:
             adare_mean = np.mean(metrics['adare'][metric])
+            adare_std = np.std(metrics['adare'][metric])
             nsga_mean = np.mean(metrics['nsga3'][metric])
-            
-            if metric == 'hausdorff':  # Plus petit est mieux
-                improvement = (nsga_mean - adare_mean)/nsga_mean * 100
-            else:  # Plus grand est mieux
-                improvement = (adare_mean - nsga_mean)/nsga_mean * 100
+            nsga_std = np.std(metrics['nsga3'][metric])
+            improvement = (adare_mean - nsga_mean)/nsga_mean * 100 if nsga_mean != 0 else 0.0
                 
             # Formatage des valeurs
             if metric == 'time':

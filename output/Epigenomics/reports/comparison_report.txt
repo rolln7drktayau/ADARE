@@ -4,127 +4,108 @@ ADARE vs NSGA-III Comparison Report
 Performance Metrics:
 --------------------
 Makespan:
-  ADARE: 564496.45
-  NSGA-III: 544057.33
-  Improvement: -3.8%
+  ADARE: 487470.84
+  NSGA-III: 581280.75
+  Improvement: +16.1%
 
 Latence:
-  ADARE: 34616.13
-  NSGA-III: 34618.78
+  ADARE: 34619.59
+  NSGA-III: 34625.88
   Improvement: +0.0%
 
 Coût:
-  ADARE: 797304.09
-  NSGA-III: 797197.33
+  ADARE: 797166.35
+  NSGA-III: 796929.45
   Improvement: -0.0%
 
 Énergie:
-  ADARE: 1368823175.44
-  NSGA-III: 1368435514.78
+  ADARE: 1368369525.74
+  NSGA-III: 1368156927.94
   Improvement: -0.0%
 
 
 Statistical Comparison:
 --------------------
 hv:
-  ADARE: 4.93e+26 ± 1.27e+24
-  NSGA-III: 4.90e+26 ± 1.87e+24
+  ADARE: 4.93e+26 ± 8.52e+23
+  NSGA-III: 4.90e+26 ± 2.38e+24
   0.6%
 
-hausdorff:
-  ADARE: 4.83e+07 ± 2.06e+07
-  NSGA-III: 2.02e+07 ± 4.53e+06
-  -138.6%
+igd:
+  ADARE: 1.93e+06 ± 5.00e+05
+  NSGA-III: 1.38e+06 ± 1.16e+05
+  39.6%
 
 spread:
-  ADARE: 2.36e+10 ± 1.55e+09
-  NSGA-III: 2.48e+10 ± 8.66e+08
-  -4.6%
+  ADARE: 2.38e+10 ± 1.07e+09
+  NSGA-III: 2.48e+10 ± 8.53e+08
+  -4.3%
 
 time:
-  ADARE: 2.66 ± 0.10
-  NSGA-III: 2.80 ± 0.05
-  -5.0%
+  ADARE: 2.76 ± 0.38
+  NSGA-III: 2.90 ± 0.34
+  -4.6%
 
 
 AI Analysis:
 --------------------
-Voici une analyse comparative entre les algorithmes ADARE et NSGA-III basée sur les résultats fournis, organisée sous forme de tableau CLI, suivie d'une explication, d'une synthèse des moyennes, et d'une discussion sur la robustesse et l'efficacité de chaque approche.
-
-```
-╔════════════╦═══════════════════════╦═══════════════════════╗
-║  Métrique  ║       ADARE           ║       NSGA-III        ║
-╠════════════╬═══════════════════════╬═══════════════════════╣
-║ Makespan   ║   564496.45           ║   544057.33           ║
-║ Latence    ║    34616.13           ║    34618.78           ║
-║ Coût       ║   797304.09           ║   797197.33           ║
-║ Énergie    ║ 1368823175.44         ║ 1368435514.78         ║
-╠════════════╬═══════════════════════╬═══════════════════════╣
-║ hv         ║ 4.93e+26 ± 1.27e+24   ║ 4.90e+26 ± 1.87e+24   ║
-║ hausdorff  ║ 4.83e+07 ± 2.06e+07   ║ 2.02e+07 ± 4.53e+06   ║
-║ spread     ║ 2.36e+10 ± 1.55e+09   ║ 2.48e+10 ± 8.66e+08   ║
-║ time       ║    2.66 ± 0.10        ║    2.80 ± 0.05        ║
-╚════════════╩═══════════════════════╩═══════════════════════╝
-```
-
-### Analyse des métriques directes
-
-Calcule de la moyenne des métriques directes pour chaque algorithme :  
-- **ADARE** : (564496,45 + 34616,13 + 797304,09 + 1368823175,44) / 4 ≈ **343,066,648.53**
-- **NSGA-III** : (544057,33 + 34618,78 + 797197,33 + 1368435514,78) / 4 ≈ **343,039,347.06**
-
-#### Interprétation :
-Sur **toutes les métriques directes**, NSGA-III obtient de meilleures valeurs ou très proches comparé à ADARE :
-- Makespan plus faible (meilleure rapidité globale),
-- Latence équivalente,
-- Coût légèrement inférieur,
-- Énergie consommée un peu moindre.
-
-NSGA-III **minimise donc mieux les métriques directes**, ce qui signifie une solution plus efficace en termes d'objectifs principaux du problème.
+Analysons d’abord les résultats directs des deux algorithmes ADARE et NSGA-III, puis abordons les métriques statistiques avec leurs interprétations, avant de conclure par des comparaisons globales.
 
 ---
 
-### Analyse des métriques statistiques
+### 1. Analyse des Métriques Directes
 
-- **hv (Hypervolume)** :
-  - Mesure la qualité globale et la diversité du front de Pareto approché ; plus c'est élevé, mieux c'est.
-  - ADARE est très légèrement devant (+0,6%), mais l’écart est faible.
+| Métriques  | ADARE           | NSGA-III        |
+|------------|-----------------|-----------------|
+| Makespan   | 487,470.84      | 581,280.75      |
+| Latence    | 34,619.59       | 34,625.88       |
+| Coût       | 797,166.35      | 796,929.45      |
+| Énergie    | 1,368,369,525.74| 1,368,156,927.94|
 
-- **hausdorff** :
-  - Mesure la distance maximale entre les points du front obtenu et le vrai front ; plus petit signifie solution plus proche du front optimal.
-  - NSGA-III surpasse nettement ADARE (-138,6 %), affichant donc un front nettement plus proche de l’optimal.
+- **Makespan** désigne la durée totale d’exécution des tâches. Plus c’est bas, plus vite le système termine. ADARE est ici clairement meilleur avec une différence assez notable (~93,000 unités).
+- **Latence** mesure souvent le délai individuel moyen des tâches : les deux sont quasiment identiques, ADARE gagne très légèrement.
+- **Coût** se réfère généralement à la dépense financière ou consommée de ressources : NSGA-III est marginalement meilleur.
+- **Énergie** correspond à la consommation énergétique globale : NSGA-III a l’avantage, mais la différence reste très faible.
 
-- **spread** :
-  - Évalue la diversité de distribution des solutions sur le front. Plus petit indique une meilleure couverture homogène.
-  - ADARE fait légèrement mieux ici, mais la différence (-4,6 %) n’est pas radicale.
+**Calcul de la moyenne des métriques directes** (en prenant les valeurs brutes, sans normalisation) :
 
-- **time** :
-  - Temps moyen d’exécution pour une instance (plus faible = plus rapide).
-  - ADARE est un peu plus rapide, mais l'écart reste faible.
+- ADARE : (487,470.84 + 34,619.59 + 797,166.35 + 1,368,369,525.74) / 4 =  
+= (1,369,688,782.52) / 4 ≈ 342,422,195.63
 
-**Moyenne simplifiée (somme des moyennes uniquement pour donner une tendance, bien que les unités diffèrent) :**
-- ADARE : (4.93e+26 + 4.83e+07 + 2.36e+10 + 2.66) / 4 ≈ ordre de grandeur : **~1.23e+26**
-- NSGA-III : (4.90e+26 + 2.02e+07 + 2.48e+10 + 2.80) / 4 ≈ ordre de grandeur : **~1.22e+26**
+- NSGA-III : (581,280.75 + 34,625.88 + 796,929.45 + 1,368,156,927.94) / 4 =  
+= (1,369,569,763.99) / 4 ≈ 342,392,440.9975
 
-Bien entendu, la moyenne brute des statistiques n’a guère de sens à cause de l’hétérogénéité des métriques, donc gardons l’analyse comparative individuelle.
-
-#### Synthèse :
-- **Hausdorff** (pertinence de solutions) : *Net avantage NSGA-III*
-- **Hv** (hypervolume/diversité du front) : *Léger avantage ADARE*
-- **Spread** (distribution) : *Léger avantage ADARE*
-- **Temps** : *ADARE plus rapide, mais peu significatif*
-
-Donc, côté **minimisation des métriques statistiques** importantes, NSGA-III surpasse notamment sur hausdorff (proximité), ce qui est souvent prioritaire. L’avantage ADARE sur spread et hypervolume est plus marginal et dépend du contexte.
+**Interprétation moyenne directe :**  
+Les deux moyennes sont quasiment identiques, NSGA-III est légèrement mieux (environ 29,700 de moins sur la moyenne), mais on voit que ADARE minimise plus efficacement le Makespan, tandis que NSGA-III a des avantages en coût et énergie.
 
 ---
 
-### Robustesse et efficacité
+### 2. Analyse des Métriques Statistiques (moyenne ± écart-type)
 
-- **Robustesse (stabilité/qualité globale)** : NSGA-III obtient des fronts plus proches de l'optimal (hausdorff) et des scores quasi équivalents en diversité (hv, spread), tout en gardant des temps d'exécution comparables. Donc, **NSGA-III est plus robuste, notamment pour la pertinence des solutions**.
-- **Efficacité (minimisation objectifs)** : NSGA-III domine sur makespan, coût, énergie, donc c'est aussi l’algorithme le plus efficace ici, avec moins de compromis.
+| Métriques | Explication & importance | ADARE           | NSGA-III         | Amélioration indiquée |
+|-----------|--------------------------|-----------------|------------------|-----------------------|
+| **HV (Hypervolume)** | Quantifie la qualité globale du front de Pareto, plus élevé est mieux, encapsule diversité et convergence. | 4.93e+26 ± 8.52e+23 | 4.90e+26 ± 2.38e+24 | +0.6% (ADARE meilleur)|
+| **IGD (Inverse Generational Distance)** | Distance moyenne entre le front obtenu et la solution idéale. Plus bas est mieux (convergence). | 1.93e+06 ± 5.00e+05 | 1.38e+06 ± 1.16e+05 | +39.6% (NSGA-III meilleur)|
+| **Spread** | Mesure la diversité de la solution : plus bas est mieux, front plus homogène. | 2.38e+10 ± 1.07e+09 | 2.48e+10 ± 8.53e+08 | -4.3% (ADARE meilleur)|
+| **Time (sec)** | Temps d’exécution moyen, plus faible meilleure efficacité. | 2.76 ± 0.38 | 2.90 ± 0.34 | -4.6% (ADARE meilleur) |
+
+**Moyenne des métriques statistiques (en valeurs brutes pour comparaison générale, en ignorant l'impact des ordres de grandeur différents car ce sont des mesures différentes, mais pour calcul rapide, on peut faire une moyenne simple des valeurs centrales, même si ce n'est pas toujours idéal):**  
+
+(En pratique, comme ces métriques mesurent différentes choses, on les interprète séparément.)
 
 ---
 
-### Conclusion rapide
+### 3. Synthèse et Conclusion
 
-En résumé, **NSGA-III** surpasse ADARE sur l’essentiel des critères directs (optimisation des objectifs), livre des solutions statistiquement plus proches de l’optimal, et reste stable et performant. ADARE reste intéressant sur la diversité des solutions, mais c’est un atout secondaire. Si ton objectif est la performance brute sur les critères directeurs, **NSGA-III s’impose clairement** dans ce comparatif.
+- **ADARE** présente une meilleure optimisation pour le Makespan, le Spread (diversité des solutions), un Hypervolume légèrement supérieur (front de solution globalement plus complet) et un temps d’exécution un peu plus faible.
+- **NSGA-III** montre une meilleure performance en termes de coût, énergie, et surtout un meilleur IGD, témoignant d’une meilleure convergence vers les solutions optimales.
+
+La robustesse de NSGA-III est visible par un IGD bien plus faible (meilleure convergence) et un écart-type plus faible pour cette métrique, indiquant des résultats plus stables d’une exécution à l’autre pour ce point précis.
+
+**Globalement :**  
+- Si l’objectif principal est de réduire la durée totale (Makespan) et garder une bonne diversité et rapidité d’exécution, ADARE s’impose.
+- Si la priorité est la convergence vers de meilleures solutions globales et une consommation énergétique/coût optimisés, NSGA-III est en tête.
+
+---
+
+Veux-tu que je t’aide à visualiser ces résultats dans un tableau ou un graphique simplifié type CLI ? Ou peut-être souhaites-tu explorer un cas d’usage plus précis pour affiner cette analyse ?

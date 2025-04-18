@@ -1,0 +1,502 @@
+{
+    "tasks": [
+        {
+            "id": 1,
+            "instructions": 981000,
+            "data_size": 4.2,
+            "dependencies": [],
+            "deadline": 26
+        },
+        {
+            "id": 2,
+            "instructions": 1011000,
+            "data_size": 4.2,
+            "dependencies": [],
+            "deadline": 26
+        },
+        {
+            "id": 3,
+            "instructions": 1016250,
+            "data_size": 4.2,
+            "dependencies": [],
+            "deadline": 27
+        },
+        {
+            "id": 4,
+            "instructions": 998250,
+            "data_size": 4.2,
+            "dependencies": [],
+            "deadline": 26
+        },
+        {
+            "id": 5,
+            "instructions": 1007250,
+            "data_size": 4.2,
+            "dependencies": [],
+            "deadline": 26
+        },
+        {
+            "id": 6,
+            "instructions": 1020000,
+            "data_size": 4.2,
+            "dependencies": [],
+            "deadline": 27
+        },
+        {
+            "id": 7,
+            "instructions": 1020000,
+            "data_size": 4.2,
+            "dependencies": [],
+            "deadline": 27
+        },
+        {
+            "id": 8,
+            "instructions": 987750,
+            "data_size": 4.2,
+            "dependencies": [],
+            "deadline": 26
+        },
+        {
+            "id": 9,
+            "instructions": 798750,
+            "data_size": 8.3,
+            "dependencies": [
+                1
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 10,
+            "instructions": 801000,
+            "data_size": 16.6,
+            "dependencies": [
+                2,
+                1
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 11,
+            "instructions": 801750,
+            "data_size": 16.6,
+            "dependencies": [
+                3,
+                1
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 12,
+            "instructions": 808500,
+            "data_size": 16.7,
+            "dependencies": [
+                1,
+                4
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 13,
+            "instructions": 792000,
+            "data_size": 16.7,
+            "dependencies": [
+                1,
+                6
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 14,
+            "instructions": 794250,
+            "data_size": 16.7,
+            "dependencies": [
+                2,
+                1
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 15,
+            "instructions": 802500,
+            "data_size": 8.3,
+            "dependencies": [
+                2
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 16,
+            "instructions": 790499,
+            "data_size": 16.6,
+            "dependencies": [
+                3,
+                2
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 17,
+            "instructions": 788250,
+            "data_size": 16.7,
+            "dependencies": [
+                2,
+                5
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 18,
+            "instructions": 803250,
+            "data_size": 16.6,
+            "dependencies": [
+                2,
+                8
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 19,
+            "instructions": 786000,
+            "data_size": 8.3,
+            "dependencies": [
+                3
+            ],
+            "deadline": 20
+        },
+        {
+            "id": 20,
+            "instructions": 773250,
+            "data_size": 16.6,
+            "dependencies": [
+                3,
+                4
+            ],
+            "deadline": 20
+        },
+        {
+            "id": 21,
+            "instructions": 797250,
+            "data_size": 16.7,
+            "dependencies": [
+                2,
+                4
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 22,
+            "instructions": 777000,
+            "data_size": 8.3,
+            "dependencies": [
+                4
+            ],
+            "deadline": 20
+        },
+        {
+            "id": 23,
+            "instructions": 795000,
+            "data_size": 16.7,
+            "dependencies": [
+                5,
+                4
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 24,
+            "instructions": 792000,
+            "data_size": 16.6,
+            "dependencies": [
+                6,
+                4
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 25,
+            "instructions": 771000,
+            "data_size": 16.6,
+            "dependencies": [
+                1,
+                5
+            ],
+            "deadline": 20
+        },
+        {
+            "id": 26,
+            "instructions": 788250,
+            "data_size": 16.6,
+            "dependencies": [
+                5,
+                4
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 27,
+            "instructions": 780750,
+            "data_size": 8.3,
+            "dependencies": [
+                5
+            ],
+            "deadline": 20
+        },
+        {
+            "id": 28,
+            "instructions": 790499,
+            "data_size": 16.6,
+            "dependencies": [
+                1,
+                6
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 29,
+            "instructions": 798000,
+            "data_size": 16.6,
+            "dependencies": [
+                2,
+                6
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 30,
+            "instructions": 796499,
+            "data_size": 16.7,
+            "dependencies": [
+                6,
+                4
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 31,
+            "instructions": 798750,
+            "data_size": 16.6,
+            "dependencies": [
+                7,
+                6
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 32,
+            "instructions": 801000,
+            "data_size": 16.6,
+            "dependencies": [
+                7,
+                5
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 33,
+            "instructions": 801750,
+            "data_size": 16.6,
+            "dependencies": [
+                3,
+                8
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 34,
+            "instructions": 795000,
+            "data_size": 16.6,
+            "dependencies": [
+                4,
+                8
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 35,
+            "instructions": 792000,
+            "data_size": 16.7,
+            "dependencies": [
+                6,
+                8
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 36,
+            "instructions": 792000,
+            "data_size": 8.3,
+            "dependencies": [
+                8
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 37,
+            "instructions": 168000,
+            "data_size": 0.4,
+            "dependencies": [
+                10,
+                9,
+                35,
+                36,
+                33,
+                34,
+                13,
+                31,
+                14,
+                32,
+                11,
+                12,
+                17,
+                18,
+                15,
+                16,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                29,
+                30
+            ],
+            "deadline": 4
+        },
+        {
+            "id": 38,
+            "instructions": 315000,
+            "data_size": 0.0,
+            "dependencies": [
+                37
+            ],
+            "deadline": 8
+        },
+        {
+            "id": 39,
+            "instructions": 824250,
+            "data_size": 8.3,
+            "dependencies": [
+                1,
+                38
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 40,
+            "instructions": 799500,
+            "data_size": 8.3,
+            "dependencies": [
+                2,
+                38
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 41,
+            "instructions": 785250,
+            "data_size": 8.3,
+            "dependencies": [
+                3,
+                38
+            ],
+            "deadline": 20
+        },
+        {
+            "id": 42,
+            "instructions": 789750,
+            "data_size": 8.3,
+            "dependencies": [
+                4,
+                38
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 43,
+            "instructions": 805500,
+            "data_size": 8.3,
+            "dependencies": [
+                5,
+                38
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 44,
+            "instructions": 786750,
+            "data_size": 8.3,
+            "dependencies": [
+                6,
+                38
+            ],
+            "deadline": 20
+        },
+        {
+            "id": 45,
+            "instructions": 790499,
+            "data_size": 8.3,
+            "dependencies": [
+                7,
+                38
+            ],
+            "deadline": 21
+        },
+        {
+            "id": 46,
+            "instructions": 781500,
+            "data_size": 8.3,
+            "dependencies": [
+                8,
+                38
+            ],
+            "deadline": 20
+        },
+        {
+            "id": 47,
+            "instructions": 240000,
+            "data_size": 66.5,
+            "dependencies": [
+                44,
+                45,
+                46,
+                41,
+                42,
+                43,
+                39,
+                40
+            ],
+            "deadline": 6
+        },
+        {
+            "id": 48,
+            "instructions": 356250,
+            "data_size": 0.0,
+            "dependencies": [
+                47
+            ],
+            "deadline": 9
+        },
+        {
+            "id": 49,
+            "instructions": 366000,
+            "data_size": 139.4,
+            "dependencies": [
+                48
+            ],
+            "deadline": 9
+        },
+        {
+            "id": 50,
+            "instructions": 91500,
+            "data_size": 2.8,
+            "dependencies": [
+                49
+            ],
+            "deadline": 2
+        }
+    ]
+}

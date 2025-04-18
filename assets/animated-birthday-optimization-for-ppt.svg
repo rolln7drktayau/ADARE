@@ -1,0 +1,264 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Styles -->
+  <style>
+    text {
+      font-family: Arial, sans-serif;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .subtitle {
+      font-size: 16px;
+      font-style: italic;
+    }
+    .axis-label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .slider-label {
+      font-size: 14px;
+    }
+    .radar-area {
+      fill: rgba(65, 105, 225, 0.5);
+      stroke: #4169e1;
+      stroke-width: 2;
+    }
+    .radar-point {
+      fill: #ff6347;
+      stroke: #c83a2e;
+      stroke-width: 2;
+    }
+    .radar-axis {
+      stroke: #999;
+      stroke-width: 1;
+    }
+    .radar-circle {
+      stroke: #ccc;
+      stroke-width: 1;
+      stroke-dasharray: 5,5;
+      fill: none;
+    }
+    .slider-track {
+      stroke: #ccc;
+      stroke-width: 10;
+      stroke-linecap: round;
+    }
+    .slider-thumb {
+      fill: #4169e1;
+      stroke: #2a4d9e;
+      stroke-width: 2;
+    }
+    .scenario-text {
+      font-size: 16px;
+      font-weight: bold;
+      fill: #333;
+    }
+  </style>
+
+  <!-- Marqueurs -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ff6347" />
+    </marker>
+    <marker id="positive-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4caf50" />
+    </marker>
+    <marker id="negative-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f44336" />
+    </marker>
+  </defs>
+
+  <!-- Titre et sous-titre -->
+  <text x="400" y="40" text-anchor="middle" class="title">Optimisation Multi-objectif : Fête d'Anniversaire</text>
+  <text x="400" y="65" text-anchor="middle" class="subtitle">Équilibrer 4 objectifs en conflit</text>
+
+  <!-- Graphique radar -->
+  <g transform="translate(400, 300)">
+    <!-- Cercles de référence -->
+    <circle cx="0" cy="0" r="50" class="radar-circle" />
+    <circle cx="0" cy="0" r="100" class="radar-circle" />
+    <circle cx="0" cy="0" r="150" class="radar-circle" />
+    <circle cx="0" cy="0" r="200" class="radar-circle" />
+    
+    <!-- Axes -->
+    <line x1="0" y1="0" x2="0" y2="-200" class="radar-axis" />
+    <line x1="0" y1="0" x2="200" y2="0" class="radar-axis" />
+    <line x1="0" y1="0" x2="0" y2="200" class="radar-axis" />
+    <line x1="0" y1="0" x2="-200" y2="0" class="radar-axis" />
+    
+    <!-- Étiquettes des axes -->
+    <text x="0" y="-210" text-anchor="middle" class="axis-label">Amis</text>
+    <text x="210" y="0" text-anchor="start" alignment-baseline="middle" class="axis-label">Jeux</text>
+    <text x="0" y="220" text-anchor="middle" class="axis-label">Snacks</text>
+    <text x="-210" y="0" text-anchor="end" alignment-baseline="middle" class="axis-label">Budget (économies)</text>
+    
+    <!-- Polygon du radar avec animation -->
+    <polygon class="radar-area" id="radar-polygon">
+      <!-- Animation initiale pour le radar -->
+      <animate 
+        attributeName="points" 
+        dur="20s" 
+        repeatCount="indefinite"
+        values="0,-120 120,0 0,100 -140,0;
+                0,-180 150,0 0,80 -70,0;
+                0,-100 180,0 0,120 -40,0;
+                0,-150 90,0 0,160 -100,0;
+                0,-80 110,0 0,170 -130,0;
+                0,-120 120,0 0,100 -140,0"
+        calcMode="spline"
+        keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1"
+        keySplines="0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1"
+      />
+    </polygon>
+    
+    <!-- Points sur le radar avec animation -->
+    <circle id="amis-point" r="6" class="radar-point">
+      <animate 
+        attributeName="cy" 
+        dur="20s" 
+        repeatCount="indefinite"
+        values="-120; -180; -100; -150; -80; -120"
+        calcMode="spline"
+        keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1"
+        keySplines="0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1"
+      />
+      <animate attributeName="cx" dur="20s" repeatCount="indefinite" values="0; 0; 0; 0; 0; 0" />
+    </circle>
+    
+    <circle id="jeux-point" r="6" class="radar-point">
+      <animate 
+        attributeName="cx" 
+        dur="20s" 
+        repeatCount="indefinite"
+        values="120; 150; 180; 90; 110; 120"
+        calcMode="spline"
+        keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1"
+        keySplines="0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1"
+      />
+      <animate attributeName="cy" dur="20s" repeatCount="indefinite" values="0; 0; 0; 0; 0; 0" />
+    </circle>
+    
+    <circle id="snacks-point" r="6" class="radar-point">
+      <animate 
+        attributeName="cy" 
+        dur="20s" 
+        repeatCount="indefinite"
+        values="100; 80; 120; 160; 170; 100"
+        calcMode="spline"
+        keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1"
+        keySplines="0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1"
+      />
+      <animate attributeName="cx" dur="20s" repeatCount="indefinite" values="0; 0; 0; 0; 0; 0" />
+    </circle>
+    
+    <circle id="budget-point" r="6" class="radar-point">
+      <animate 
+        attributeName="cx" 
+        dur="20s" 
+        repeatCount="indefinite"
+        values="-140; -70; -40; -100; -130; -140"
+        calcMode="spline"
+        keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1"
+        keySplines="0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1"
+      />
+      <animate attributeName="cy" dur="20s" repeatCount="indefinite" values="0; 0; 0; 0; 0; 0" />
+    </circle>
+  </g>
+
+  <!-- Sliders statiques mais avec animation du curseur -->
+  <g transform="translate(100, 500)">
+    <text x="0" y="-15" class="slider-label">Nombre d'amis:</text>
+    <line x1="10" y1="0" x2="170" y2="0" class="slider-track" />
+    <circle cx="100" cy="0" r="15" class="slider-thumb">
+      <animate 
+        attributeName="cx" 
+        dur="20s" 
+        repeatCount="indefinite"
+        values="100; 150; 70; 130; 60; 100"
+        calcMode="spline"
+        keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1"
+        keySplines="0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1"
+      />
+    </circle>
+  </g>
+  
+  <g transform="translate(300, 500)">
+    <text x="0" y="-15" class="slider-label">Qualité des jeux:</text>
+    <line x1="10" y1="0" x2="170" y2="0" class="slider-track" />
+    <circle cx="100" cy="0" r="15" class="slider-thumb">
+      <animate 
+        attributeName="cx" 
+        dur="20s" 
+        repeatCount="indefinite"
+        values="100; 130; 160; 70; 90; 100"
+        calcMode="spline"
+        keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1"
+        keySplines="0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1"
+      />
+    </circle>
+  </g>
+  
+  <g transform="translate(500, 500)">
+    <text x="0" y="-15" class="slider-label">Variété des snacks:</text>
+    <line x1="10" y1="0" x2="170" y2="0" class="slider-track" />
+    <circle cx="80" cy="0" r="15" class="slider-thumb">
+      <animate 
+        attributeName="cx" 
+        dur="20s" 
+        repeatCount="indefinite"
+        values="80; 60; 100; 140; 150; 80"
+        calcMode="spline"
+        keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1"
+        keySplines="0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1"
+      />
+    </circle>
+  </g>
+  
+  <g transform="translate(700, 500)">
+    <text x="0" y="-15" class="slider-label">Budget max:</text>
+    <line x1="10" y1="0" x2="170" y2="0" class="slider-track" />
+    <circle cx="120" cy="0" r="15" class="slider-thumb">
+      <animate 
+        attributeName="cx" 
+        dur="20s" 
+        repeatCount="indefinite"
+        values="120; 60; 40; 90; 110; 120"
+        calcMode="spline"
+        keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1"
+        keySplines="0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1; 0.5 0 0.5 1"
+      />
+    </circle>
+  </g>
+
+  <!-- Affichage du scénario actuel -->
+  <rect x="300" y="100" width="200" height="50" fill="#f9f9f9" stroke="#4169e1" stroke-width="2" rx="5" ry="5" />
+  <text x="400" y="125" text-anchor="middle" class="scenario-text" id="scenario-text">Scénario équilibré</text>
+  <animate 
+    xlink:href="#scenario-text"
+    attributeName="textContent"
+    dur="20s"
+    repeatCount="indefinite"
+    values="Scénario équilibré;Beaucoup d'amis;Jeux de qualité;Focus sur la nourriture;Économie de budget;Scénario équilibré"
+    keyTimes="0; 0.2; 0.4; 0.6; 0.8; 1"
+    calcMode="discrete"
+  />
+
+  <!-- Légende explicative -->
+  <rect x="550" y="100" width="220" height="150" fill="#f9f9f9" stroke="#ccc" stroke-width="1" rx="5" ry="5" />
+  <text x="560" y="125" class="slider-label" font-weight="bold">Comment lire cette animation:</text>
+  <text x="560" y="150" class="slider-label">1. Observer les différents scénarios</text>
+  <text x="560" y="170" class="slider-label">   qui défilent automatiquement</text>
+  <text x="560" y="190" class="slider-label">2. Noter comment les 4 objectifs</text>
+  <text x="560" y="210" class="slider-label">   s'influencent mutuellement</text>
+  <text x="560" y="230" class="slider-label">3. Identifier le meilleur équilibre!</text>
+
+  <!-- Explication des interactions -->
+  <rect x="100" y="100" width="180" height="150" fill="#f9f9f9" stroke="#ccc" stroke-width="1" rx="5" ry="5" />
+  <text x="110" y="125" class="slider-label" font-weight="bold">Relations entre objectifs:</text>
+  <text x="110" y="150" class="slider-label">• Plus d'amis = Plus de coûts</text>
+  <text x="110" y="170" class="slider-label">• Meilleurs jeux = Plus de coûts</text>
+  <text x="110" y="190" class="slider-label">• Plus de snacks = Plus de coûts</text>
+  <text x="110" y="210" class="slider-label">• Budget limité = Compromis</text>
+  <text x="110" y="230" class="slider-label">  sur les autres objectifs</text>
+</svg>
