@@ -1,0 +1,18 @@
+{
+    "objectives": ["makespan", "latency", "cost", "energy"],
+    "benchmarks": ["Montage_25", "CyberShake_30", "Epigenomics_24"],
+    "general_parameters": {
+        "num_runs": 8,
+        "base_seed": 20260219,
+        "output_dir": "output",
+        "save_plots": true
+    },
+    "shared_parameters": {
+        "population_size": 100,
+        "generations": 70,
+        "crossover_probability": 0.85,
+        "mutation_probability": 0.2,
+        "reference_points_divisions": 12,
+        "gene_mutation_probability": 0.08
+    }
+}

@@ -1,8 +1,15 @@
 # Variables
-PYTHON = python3
+PYTHON ?= python
 VENV = myenv
-PIP = $(VENV)/bin/pip
 REQUIREMENTS = requirements.txt
+
+ifeq ($(OS),Windows_NT)
+	VENV_ACTIVATE = $(VENV)/Scripts/activate
+	PIP = $(VENV)/Scripts/pip.exe
+else
+	VENV_ACTIVATE = $(VENV)/bin/activate
+	PIP = $(VENV)/bin/pip
+endif
 
 # Directories
 DATA_DIR = data
@@ -11,16 +18,17 @@ BENCHMARKS_DIR = $(DATA_DIR)/benchmarks
 OUTPUT_DIR = output
 WORKFLOWS_DIR = $(DATA_DIR)/workflows
 BUILD_DIR = $(DATA_DIR)/build
+COOKIES_DIR = har_and_cookies
 
 # Main commands
-.PHONY: all run clean build test setup
+.PHONY: all run clean build setup format lint help
 
 all: setup run
 
 # Default run with sample data
 run:
 	@mkdir -p $(OUTPUT_DIR)/plots $(OUTPUT_DIR)/reports
-	$(PYTHON) adare_vs_nsga3.py
+	$(PYTHON) main.py
 
 # Run with specific workflow
 run-%:
@@ -50,15 +58,13 @@ clean:
 	rm -rf .pytest_cache/
 	rm -rf *.pyc
 	rm -rf $(HISTORY_DIR)/*
+	rm -rf $(COOKIES_DIR)/*
 
-test:
-	$(PYTHON) -m pytest tests/
-
-setup: $(VENV)/bin/activate
+setup: $(VENV_ACTIVATE)
 	$(PIP) install -r $(REQUIREMENTS)
 
 # Virtual environment
-$(VENV)/bin/activate:
+$(VENV_ACTIVATE):
 	$(PYTHON) -m venv $(VENV)
 	$(PIP) install --upgrade pip
 
@@ -76,7 +82,6 @@ help:
 	@echo "  make run              - Run the ADARE algorithm with sample data"
 	@echo "  make run-WORKFLOW_SIZE - Run with specific workflow (e.g., make run-CyberShake_30)"
 	@echo "  make clean            - Remove generated files"
-	@echo "  make test             - Run tests"
 	@echo "  make setup            - Install dependencies"
 	@echo "  make format           - Format code with black"
 	@echo "  make lint             - Check code style with flake8"

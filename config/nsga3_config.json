@@ -1,0 +1,4 @@
+{
+    "description": "NSGA-III baseline with standard fixed operators",
+    "gene_mutation_probability": 0.08
+}

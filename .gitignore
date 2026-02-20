@@ -1,1 +1,38 @@
+# Python bytecode and caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py,cover
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+myenv/
+.venv/
+venv/
+env/
+
+# Runtime and profiling artifacts
+output/
 saves/
+*.prof
+*.lprof
+*.log
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+
+# LaTeX temporary files
+*.aux
+*.fdb_latexmk
+*.fls
+*.out
+*.synctex.gz
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

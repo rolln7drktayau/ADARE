@@ -1,0 +1,26 @@
+# Rapid startup (Make-based)
+# ------------------------------------
+# 1) Install Python dependencies into the virtual environment
+make setup
+
+# 2) Run the default experiment configured in main.py + config files
+make run
+
+# 3) Run one specific benchmark from the Makefile pattern rule
+#    Example targets: Montage_25, CyberShake_30, Epigenomics_24
+make run-Montage_25
+make run-CyberShake_30
+make run-Epigenomics_24
+
+# 4) Optional: clean generated outputs and caches
+make clean
+
+# 5) Optional: formatting and linting
+make format
+make lint
+
+# 6) List available commands
+make help
+
+# 7) Test the syntax hardening
+python -m compileall -q
