@@ -68,12 +68,12 @@ Modern distributed applications increasingly execute over heterogeneous computin
 NSGA-III remains a strong baseline for many-objective optimization because of its reference-point selection mechanism \cite{deb2014nsga3}. However, workflow-scheduling implementations commonly keep crossover and mutation probabilities fixed across the entire run. In heterogeneous Edge/Fog/Cloud settings, this assumption is fragile: an operator that is useful for early exploration can later damage partial structures once the population starts refining narrow trade-off regions. In practice, this can reduce either convergence pressure or diversity exactly when the search distribution starts to shift.
 
 % Author reasoning clarification
-In our early paired runs, this phase-dependent behavior appeared repeatedly in the convergence traces before it became obvious in the summary tables. That pushed us away from redesigning the whole optimizer and toward a more targeted intervention: keep the NSGA-III selection backbone, but let a small online controller adapt crossover choice from observed Pareto-quality rewards. This framing also aligns with ECML PKDD's emphasis on learning-driven decision systems: the optimization engine acts as the environment, operator choice is the action, and search feedback becomes the training signal.
+In our early paired runs, this phase-dependent behavior appeared repeatedly in the convergence traces before it became obvious in the summary tables. That pushed us away from redesigning the whole optimizer and toward a more targeted intervention: keep the NSGA-III selection backbone, but let a small online controller adapt crossover choice from observed Pareto-quality rewards. This framing also follows a learning-driven decision view: the optimization engine acts as the environment, operator choice is the action, and search feedback becomes the training signal.
 
 \paragraph{Contributions.}
-We make four contributions.
+We make four contributions, each tied to a concrete issue we encountered while instrumenting and comparing the runs.
 \begin{enumerate}
-    \item We formalize crossover control in ADARE as a \emph{non-stationary multi-armed bandit (MAB)} problem and implement an online UCB-based controller with reward updates computed from a Pareto-quality proxy.
+    \item We formalize crossover control in ADARE as a \emph{non-stationary multi-armed bandit (MAB)} problem, and we implement an online UCB-based controller whose reward updates are computed from a Pareto-quality proxy.
     \item We integrate density-aware mutation and archive-guided final objective refinement into the same control-aware evolutionary loop, while keeping the comparison protocol fair against NSGA-III.
     \item We provide a statistically grounded evaluation on three workflow instances with \textbf{20 paired runs} per benchmark, reporting Wilcoxon signed-rank tests and Cliff's delta effect sizes.
     \item We analyze computational complexity and profile the control overhead to show that the additional control layer remains modest relative to schedule evaluation cost.
@@ -89,7 +89,7 @@ Workflow scheduling in heterogeneous distributed systems is classically formulat
 For this reason, many-objective formulations are more appropriate in heterogeneous edge, fog, and cloud orchestration than single-score scheduling. The scheduler should expose trade-off solutions rather than a single operating point. In the workflow community, benchmark instances such as Montage, CyberShake, and Epigenomics are widely used to stress both compute and communication behavior; we rely on public workflow repositories and WfCommons-style instances for reproducible experimentation \cite{coleman2021wfcommons}.
 
 \subsection{Baseline Many-Objective Evolutionary Algorithms}
-NSGA-II \cite{deb2002nsga2} remains a standard reference for multi-objective evolutionary optimization, especially when the number of objectives is small to moderate. NSGA-III extends this line using reference points to improve selection pressure in many-objective settings \cite{deb2014nsga3}. MOEA/D, in contrast, decomposes the multi-objective problem into scalar subproblems and optimizes them collaboratively \cite{zhang2007moead}. These methods are strong baselines because they encode complementary design biases: dominance ranking, reference-point niching, and decomposition.
+NSGA-II \cite{deb2002nsga2} is still a standard reference in multi-objective evolutionary optimization, particularly when the number of objectives stays moderate. NSGA-III pushes this family further with reference points that sustain selection pressure in many-objective settings \cite{deb2014nsga3}. MOEA/D \cite{zhang2007moead} follows a different logic and decomposes the problem into scalar subproblems solved collaboratively. We keep all three not for redundancy, but because they expose different search biases in practice: dominance ranking, reference-point niching, and decomposition.
 
 % Author reasoning clarification
 In practice, however, workflow scheduling studies often keep crossover and mutation schedules fixed because dynamic operator policies are harder to instrument and compare reproducibly. That engineering convenience becomes a methodological limitation in our setting. ADARE keeps the many-objective selection backbone intact (NSGA-III in the current artifact) and changes the control policy around operator choice and mutation behavior as the search state evolves.
@@ -112,7 +112,7 @@ Table~\ref{tab:baseline_landscape} summarizes the roles of the most relevant bas
 Method / family & Many-obj. & Online learning & Adaptivity & Relevance to this study \\
 \midrule
 NSGA-II \cite{deb2002nsga2} & Med. & No & No & Standard baseline for multi-objective optimization; included for methodological positioning. \\
-NSGA-III \cite{deb2014nsga3} & High & No & No & Direct paired baseline in the artifact; strong selection, but static operator schedule. \\
+NSGA-III \cite{deb2014nsga3} & High & No & No & Direct paired baseline in the artifact; strong selection, though operator schedule remains static. \\
 MOEA/D \cite{zhang2007moead} & High & No & No & Strong decomposition baseline; included for comparative positioning. \\
 Recent adaptive MOEAs \cite{jiao2023ovea,wang2025mrlmoea,xue2025qlmoead} & High & Yes & Yes & Learning-guided control in generic MOEA settings; limited workflow-specific evidence. \\
 ADARE (this work) & High & Yes (UCB) & Yes & Workflow-specific learning-guided adaptive control with fairness-controlled evaluation. \\
@@ -189,10 +189,10 @@ where:
     \item $f_{\mathrm{eng}}$ accumulates compute-time-weighted working power as an execution energy proxy.
 \end{itemize}
 
-This formulation follows the practical tension of edge/fog/cloud orchestration: minimizing completion time often pushes tasks toward faster nodes, which may increase cost or energy usage. Consequently, the output of interest is not a single solution but a diverse, high-quality Pareto set.
+This formulation reflects a practical tension in edge/fog/cloud orchestration. When we push completion time down, assignments drift toward faster nodes; depending on the tier, that can raise cost or energy. For that reason, we do not target a single operating point but a diverse, high-quality Pareto set.
 
 \subsection{Evaluation Targets and Quality Indicators}
-In addition to objective values, we evaluate search quality using hypervolume (HV), inverted generational distance (IGD), spacing, additive epsilon, and coverage. These indicators quantify front quality from complementary viewpoints (dominance coverage, convergence to a reference front, and spread regularity). This distinction is essential for ADARE: the adaptive controller optimizes search behavior, not only a single objective extreme.
+In addition to objective values, we evaluate search quality using hypervolume (HV), inverted generational distance (IGD), spacing, additive epsilon, and coverage. No single indicator was reliable enough on its own in our runs, so we keep this set to read front quality from complementary angles (dominance coverage, convergence to a reference front, and spread regularity). For ADARE, that distinction matters: the controller is meant to improve search behavior over time, not just one objective extreme.
 
 % Experimental intuition added
 With the objective vector and evaluation targets fixed, the remaining question is how the search loop uses this feedback online. We next describe the operator controller and the diversity/archive mechanisms that were retained after implementation and profiling.
@@ -245,11 +245,11 @@ We define the reward as a scalar Pareto-quality improvement proxy computed on th
 \label{eq:reward}
 r_t = \phi\!\left(\min\{p_1,p_2\}\right) - \phi\!\left(\min\{c_1,c_2\}\right),
 \end{equation}
-where $\phi(\cdot)$ is a log-scaled scalarization proxy (smaller is better). We use this proxy because computing front-level indicators after each mating event would make reward attribution expensive and noisy at the operator level. Positive reward means the selected operator produced better offspring according to the proxy. ADARE updates the selected operator value by exponential smoothing:
+where $\phi(\cdot)$ is a log-scaled scalarization proxy (smaller is better). We retained this proxy after a few implementation attempts because front-level indicators at every mating event made operator-level attribution both expensive and noisy. A positive reward indicates that the selected operator produced better offspring according to the proxy. ADARE updates the selected operator value by exponential smoothing:
 \begin{equation}
 Q_k \leftarrow (1-\alpha)Q_k + \alpha r_t.
 \end{equation}
-In practice, this turns operator control into an online learning process while keeping the update cheap enough to measure its overhead cleanly.
+This keeps operator control in an online-learning regime, while the update itself remains cheap enough for clean overhead measurements.
 
 \begin{algorithm}[t]
 \caption{ADARE UCB-Based Crossover Control}
@@ -367,7 +367,7 @@ This table creates the optimization tension used throughout the study. In early 
 ADARE and NSGA-III share the same evaluation function, generation budget, and initial population at each paired run. The artifact generates a shared initial population from the same seed before instantiating both algorithms, which enforces a fair comparison baseline.
 
 % Author reasoning clarification
-We report \textbf{20 paired runs per benchmark}. In practice, we execute the benchmarks sequentially (one workflow family at a time) on the local workstation to avoid cross-process interference in runtime measurements, but the statistical protocol itself is the standard paired 20-run design.
+We report \textbf{20 paired runs per benchmark}. On the workstation, we execute benchmarks sequentially (one workflow family at a time) so runtime measurements are not perturbed by concurrent processes. The underlying statistical design remains the same: paired 20-run comparisons.
 
 Reported outputs include: (i) Pareto-quality metrics (HV, IGD, spacing, epsilon, coverage), (ii) runtime, and (iii) best objective values for makespan, latency, cost, and energy. For statistical validation, we use the paired Wilcoxon signed-rank test and Cliff's delta effect size \cite{wilcoxon1945,cliff1993}.
 
@@ -422,10 +422,10 @@ Benchmark & Metric & Wilcoxon $p$ & Cliff's $\delta$ \\
 % Discussion refinement
 Table~\ref{tab:stats20} confirms that the quality gains are not only visual. HV improvements are significant on all three workflows, and the selected runtime comparisons are also significant in this final protocol. Epigenomics nevertheless remains the benchmark where runtime gains are the smallest in effect size (small Cliff's $\delta$), even when the direction is favorable.
 
-Across the three benchmarks, ADARE wins \textbf{18/18} quality comparisons (including runtime) and \textbf{15/15} core-quality comparisons (excluding runtime), with mean gains of \textbf{26.80\%} in core quality, \textbf{10.70\%} in best-objective metrics, and \textbf{5.50\%} in runtime.
+Across the three benchmarks, ADARE wins \textbf{18/18} quality comparisons (including runtime) and \textbf{15/15} core-quality comparisons (excluding runtime). Averaged over the protocol, gains are \textbf{26.80\%} in core quality, \textbf{10.70\%} in best-objective metrics, and \textbf{5.50\%} in runtime.
 
 \subsection{Ablation Protocol (V1--V5) and Artifact-Ready Variant Definition}
-To isolate the contribution of each adaptive module, we define the following ablation chain under the same paired-run fairness constraints: \textbf{V1} NSGA-III baseline; \textbf{V2} V1 + UCB crossover control; \textbf{V3} V2 + density-aware mutation; \textbf{V4} V3 + archive injection/final-pool guidance (partial); \textbf{V5} full ADARE.
+To isolate the contribution of each adaptive module, we use the same paired-run fairness constraints and build the ablation chain incrementally: \textbf{V1} NSGA-III baseline; \textbf{V2} V1 + UCB crossover control; \textbf{V3} V2 + density-aware mutation; \textbf{V4} V3 + archive injection/final-pool guidance (partial); \textbf{V5} full ADARE.
 
 \begin{table}[t]
 \caption{Ablation Variants (Design Matrix for the 20-Run Protocol)}
@@ -500,14 +500,14 @@ Figure~\ref{fig:pareto_all} is consistent with the quantitative results: ADARE e
 \label{fig:conv_all}
 \end{figure}
 
-Figure~\ref{fig:conv_all} supports the control interpretation of ADARE: the method changes search dynamics, not only final fronts. The effect is strongest on Montage and CyberShake, while Epigenomics benefits more through structural front quality than through large runtime gains.
+Figure~\ref{fig:conv_all} supports the control interpretation of ADARE: the method affects search dynamics, not only the final fronts. The effect appears strongest on Montage and CyberShake. Epigenomics still benefits, but mostly through front structure rather than large runtime shifts.
 
 % Discussion refinement
 At this point, the practical question is less ``does ADARE ever help?'' and more ``when does the adaptive layer help most, and where are its limits?'' The discussion below addresses that question directly.
 \section{Discussion}
 \subsection{Why Static NSGA-III Underperforms in Heterogeneous Environments}
 % Discussion refinement
-In our setting, the main weakness of a static NSGA-III pipeline is not the selection operator itself; NSGA-III's reference-point mechanism remains a strong many-objective baseline. The recurring issue is \emph{operator control rigidity}: fixed crossover and mutation schedules implicitly assume a stable reward landscape, whereas workflow scheduling over heterogeneous edge, fog, and cloud resources exhibits phase changes during search.
+In our setting, the main weakness of a static NSGA-III pipeline is not the selection operator itself; NSGA-III's reference-point mechanism remains a strong many-objective baseline. The recurring issue is \emph{operator control rigidity}. Fixed crossover and mutation schedules assume a reward landscape that stays roughly stable, but workflow scheduling across heterogeneous edge, fog, and cloud resources shows phase changes during search.
 
 Early generations benefit from broad exploration to discover useful task-node assignments under precedence and bandwidth constraints. Later generations benefit more from operators that preserve partial structure and refine local trade-offs. A static schedule cannot represent this shift explicitly, while ADARE's controller adapts operator preference from observed rewards. The convergence plots were useful here because they exposed this phase dependence before the aggregate statistics made it obvious.
 \subsection{Justification of Experimental Choices}
@@ -518,17 +518,17 @@ We use population size 100 and 70 generations to keep comparisons computationall
 Seed control is not a cosmetic choice. In stochastic MOEAs, comparing unmatched runs can confound algorithmic differences with initialization variance. Our paired design uses the same initial population for ADARE and NSGA-III for every run, which makes Wilcoxon and Cliff's delta more informative.
 
 \paragraph{Why 20 runs.}
-The original artifact analysis used 6 runs, which is often enough to identify strong effects but remains fragile for smaller effect-size comparisons (especially runtime, compared with HV/IGD/spacing gains). We moved to 20 paired runs to stabilize mean estimates and effect sizes. Table~\ref{tab:stats20} illustrates the practical point: even when all reported directions are favorable, the effect sizes are not uniform across benchmarks or metrics.
+The original artifact analysis used 6 runs. That was enough to detect strong effects, but it stayed fragile for smaller effect-size comparisons, especially runtime relative to HV/IGD/spacing gains. We therefore moved to 20 paired runs to stabilize means and effect sizes. Table~\ref{tab:stats20} reflects this directly: reported directions are favorable, yet effect sizes still vary across benchmarks and metrics.
 
 \subsection{Sensitivity and Robustness Trends}
 Our observations suggest three sensitivity patterns.
 \begin{enumerate}
     \item \textbf{Run count sensitivity}: metrics with smaller effect sizes (most clearly runtime on Epigenomics in our final protocol) are sensitive to the number of repetitions and should not be interpreted from very small samples.
     \item \textbf{Mutation/Archive sensitivity}: ADARE's strongest empirical gains are associated with spacing, coverage, and objective extremes, indicating that density-aware mutation and archive guidance dominate the observed improvements in difficult landscapes.
-    \item \textbf{Benchmark dependence}: ADARE delivers strong quality gains on all three workflows, but the balance between quality and runtime gains is still benchmark-dependent; Epigenomics shows smaller runtime effect size than CyberShake or Montage despite clear quality improvements.
+    \item \textbf{Benchmark dependence}: ADARE delivers strong quality gains on all three workflows, but quality and runtime do not move with the same amplitude on every instance; Epigenomics shows a smaller runtime effect size than CyberShake or Montage despite clear quality improvements.
 \end{enumerate}
 
-These patterns support the adaptive-control interpretation: under the reported 20-run protocol ADARE is superior on all tracked quality metrics, but the \emph{magnitude} of improvement still depends on benchmark structure. This is why we avoid benchmark-independent claims about effect size from a smaller number of repetitions, even when the win/loss counts look unambiguous.
+These patterns support the adaptive-control interpretation. Under the reported 20-run protocol, ADARE is superior on all tracked quality metrics, but the \emph{magnitude} of improvement still depends on benchmark structure. This is also why we avoid benchmark-independent statements about effect size from smaller repetition counts, even when win/loss counts look unambiguous.
 \subsection{Limitations and Artifact Scope}
 % Discussion refinement
 Two limitations should be stated explicitly. First, the current artifact directly implements NSGA-III as the paired baseline; NSGA-II and MOEA/D are included in our comparative positioning but not yet re-implemented under the same evaluator in this code snapshot. Second, while we provide the required V1--V5 ablation protocol and variant mapping, the full 20-run ablation sweep is deferred to a dedicated artifact extension because it substantially expands total runtime on a local workstation.
@@ -538,7 +538,7 @@ These limitations do not invalidate the main ADARE-vs-NSGA-III comparison, but t
 % Discussion refinement
 We reframed ADARE as an online control layer for many-objective workflow scheduling rather than as a simple scheduler variant. This framing is technically useful because it explains why operator-level learning is central to the method, while the evolutionary backbone can remain largely unchanged.
 
-Under a fairness-controlled protocol (same initialization, same budget, same evaluator) and a stronger statistical setup (20 paired runs per benchmark), ADARE improves overall many-objective search quality and runtime against NSGA-III on three heterogeneous workflow instances. The gains are strongest in HV, coverage, spacing, and objective extremes, with CyberShake showing the clearest combined benefit. The final protocol also yields runtime improvements on all three benchmarks, although the Epigenomics runtime effect remains smaller than the quality effects on that workflow. Importantly, the measured control overhead remains near 5\% on average, preserving practical usability on a local workstation.
+Under a fairness-controlled protocol (same initialization, same budget, same evaluator) and a stronger statistical setup (20 paired runs per benchmark), ADARE improves overall many-objective search quality and runtime against NSGA-III on three heterogeneous workflow instances. Gains are strongest in HV, coverage, spacing, and objective extremes; CyberShake shows the clearest combined benefit. Runtime also improves on all three benchmarks in the final protocol, although the Epigenomics runtime effect remains smaller than its quality effects. Measured control overhead stays near 5\% on average, which preserves practical usability on a local workstation.
 
 For the ECML PKDD framing, the main takeaway is that workflow scheduling in heterogeneous distributed systems benefits from treating evolutionary operator choice as an \emph{online learning control problem}. Future work will complete the 20-run V1--V5 ablation sweep and extend the artifact with directly implemented NSGA-II and MOEA/D baselines under the same evaluator.
 \enlargethispage{3\baselineskip}
