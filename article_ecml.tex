@@ -183,14 +183,25 @@ where:
     \item $f_{\mathrm{cost}}$ accumulates compute-time-weighted processing cost across assigned nodes;
     \item $f_{\mathrm{eng}}$ accumulates compute-time-weighted working power as an execution energy proxy.
 \end{itemize}
+Let $C_i$, $R_i$, $I_i$, $\rho_{x_i}$, $c_{x_i}$, and $p^{\mathrm{wrk}}_{x_i}$ denote completion time, readiness time, task instructions, node processing rate, node cost, and node working power; cost and energy use execution-time weighting $I_i / \rho_{x_i}$.
+The evaluator computes these metrics as:
+\begin{equation}
+\label{eq:objective_metrics}
+\begin{aligned}
+f_{\mathrm{mk}}(x) &= \max_{i \in V} C_i, \\
+f_{\mathrm{lat}}(x) &= \sum_{i \in V} \left(C_i - R_i\right), \\
+f_{\mathrm{cost}}(x) &= \sum_{i \in V} \left(\frac{I_i}{\rho_{x_i}}\right) c_{x_i}, \\
+f_{\mathrm{eng}}(x) &= \sum_{i \in V} \left(\frac{I_i}{\rho_{x_i}}\right) p^{\mathrm{wrk}}_{x_i}.
+\end{aligned}
+\end{equation}
 
-In our runs, we repeatedly observed this tension in edge/fog/cloud orchestration. Faster assignments reduce completion time. Sometimes sharply. Depending on tier placement, cost or energy can then increase. So we target a diverse, high-quality Pareto set rather than a single operating point.
+This reflects the core edge/fog/cloud tension: faster assignments can reduce completion time while increasing cost or energy, so we target a diverse Pareto set rather than a single operating point.
 
 \subsection{Evaluation Targets and Quality Indicators}
 In addition to objective values, we evaluate search quality using hypervolume (HV), inverted generational distance (IGD), spacing, additive epsilon, and coverage. No single indicator was reliable enough on its own in our runs, so we keep this set to read front quality from complementary angles (dominance coverage, convergence to a reference front, and spread regularity). For ADARE, that distinction matters: the controller is meant to improve search behavior over time, not just one objective extreme.
 
 % Experimental intuition added
-With the objective vector and evaluation targets fixed, the remaining question is how the search loop uses this feedback online. We next describe the operator controller and the diversity/archive mechanisms that were retained after implementation and profiling.
+With the objective vector and evaluation targets fixed, we now describe how the search loop uses this feedback online.
 
 \section{ADARE Methodology: Learning-Guided Adaptive Control}
 \subsection{Design Overview}
@@ -221,7 +232,7 @@ arr/.style={-{Stealth[length=1.6mm]}, thick}
 \end{figure}
 
 % Experimental intuition added
-The architectural decision was deliberate. Replacing the full optimizer with a monolithic learner would make paired comparisons harder to interpret and would blur where the gains come from. We therefore attach the adaptive components to operator choice and diversity recovery while leaving NSGA-III selection unchanged; this keeps the method interpretable and preserves a runtime profile that is still practical on a local workstation.
+We kept this architecture on purpose: replacing the full optimizer with a monolithic learner would blur attribution in paired comparisons. Instead, we adapt operator choice and diversity recovery while keeping NSGA-III selection unchanged, which preserves interpretability and a practical runtime profile.
 
 \subsection{Learning Formalization: Non-stationary MAB for Operator Control}
 \label{sec:mab}
@@ -244,9 +255,9 @@ where $\phi(\cdot)$ is a log-scaled scalarization proxy (smaller is better). We 
 \begin{equation}
 Q_k \leftarrow (1-\alpha)Q_k + \alpha r_t.
 \end{equation}
-This keeps operator control in an online-learning regime, while the update itself remains cheap enough for clean overhead measurements.
+This keeps operator control in an online-learning regime, while the update itself remains cheap enough for clean overhead measurements. Algorithm~\ref{alg:ucb_control} gives the exact decision/update sequence used per mating event.
 
-\begin{algorithm}[t]
+\begin{algorithm}[H]
 \caption{ADARE UCB-Based Crossover Control}
 \label{alg:ucb_control}
 \small
@@ -261,9 +272,9 @@ This keeps operator control in an online-learning regime, while the update itsel
 \end{algorithm}
 
 \subsection{Density-Aware Mutation and Local Repair}
-ADARE's mutation layer adapts perturbation effort using generation progress and population diversity. When diversity collapses, mutation pressure increases; when diversity is healthy, mutation stays conservative. A heuristic task-node ranking (processing speed, bandwidth, cost, power) biases part of the mutations toward plausible assignments, but we retain a random fallback to avoid over-committing to the heuristic. This balance matters in workflow scheduling because naive perturbations can break good structures under precedence and transfer constraints, while purely heuristic moves can reduce exploration too early.
+ADARE's mutation layer adapts perturbation effort using generation progress and population diversity. When diversity collapses, mutation pressure increases; when diversity is healthy, mutation stays conservative. A heuristic task-node ranking (processing speed, bandwidth, cost, power) biases part of the mutations toward plausible assignments, with a random fallback to avoid early over-commitment. Algorithm~\ref{alg:density_mutation} summarizes the mutation and repair sequence used in each generation.
 
-\begin{algorithm}[t]
+\begin{algorithm}[H]
 \caption{Density-Aware Mutation with Heuristic Guidance}
 \label{alg:density_mutation}
 \small
@@ -281,9 +292,9 @@ ADARE's mutation layer adapts perturbation effort using generation progress and 
 \end{algorithm}
 
 \subsection{Archive Guidance and Objective-Focused Final Candidate Pool}
-ADARE maintains a bounded archive of strong non-dominated or high-value candidates. During evolution, archive injection is rate-limited so it improves search guidance without collapsing diversity. At the end of the run, ADARE separates two roles: (i) the final non-dominated population for Pareto-quality metrics (HV/IGD/spacing/epsilon/coverage), and (ii) an objective-focused pool augmented with archive and targeted candidates for best-objective reporting (e.g., makespan or latency extremes). This separation is important for interpretation: otherwise, very specialized archived candidates can improve best-objective reporting while giving a misleading impression of the final Pareto front quality.
+ADARE maintains a bounded archive of strong non-dominated or high-value candidates. During evolution, archive injection is rate-limited to guide search without collapsing diversity. At the end of the run, ADARE separates two roles: (i) the final non-dominated population for Pareto-quality metrics (HV, IGD, spacing, epsilon, coverage), and (ii) an objective-focused pool augmented with archive and targeted candidates for best-objective reporting (e.g., makespan or latency extremes). Algorithm~\ref{alg:archive_pool} details this construction.
 
-\begin{algorithm}[t]
+\begin{algorithm}[H]
 \caption{Archive-Guided Final Objective Pool Construction}
 \label{alg:archive_pool}
 \small
@@ -311,10 +322,10 @@ To verify this empirically, we instrumented UCB selection and update, together w
 
 \section{Experimental Protocol and Results}
 \subsection{Artifact, Local Execution Context, and Hardware Configuration}
-All experiments were executed locally using the code in the current ADARE artifact (no cluster). We report the host details from \texttt{data/dxdiag.txt} because runtime differences at this scale are sensitive to workstation-level CPU and memory behavior.
+All experiments were executed locally using the code in the current ADARE artifact (no cluster). We report the host details from system diagnostics because runtime differences at this scale are sensitive to workstation-level CPU and memory behavior.
 
 \begin{table}[t]
-\caption{Local Host Machine (from \texttt{data/dxdiag.txt})}
+\caption{Local Host Machine (from system diagnostics)}
 \label{tab:hardware}
 \centering
 \small
@@ -338,10 +349,10 @@ Table~\ref{tab:hardware} is operationally important because runtime gains in Pyt
 \subsection{Benchmarks and Heterogeneous Resource Configuration}
 We evaluate three workflow instances commonly used in scientific workflow scheduling: \texttt{Montage\_25}, \texttt{CyberShake\_30}, and \texttt{Epigenomics\_24}. These workflow families are available through public repositories used in the Pegasus and WfCommons ecosystems \cite{coleman2021wfcommons}.
 
-The heterogeneous resource model is defined by \texttt{data/environments.json}. Table~\ref{tab:envjson} reproduces the exact tier-level parameters used in the artifact.
+The heterogeneous resource model is defined in the experiment configuration. Table~\ref{tab:envjson} reproduces the exact tier-level parameters used in the artifact.
 
 \begin{table}[t]
-\caption{Resource Configuration from \texttt{data/environments.json}}
+\caption{Resource Configuration Used in Experiments}
 \label{tab:envjson}
 \centering
 \small
@@ -606,6 +617,12 @@ WfCommons Project: WfCommons: benchmark instances and workflow tools. \url{https
 \end{thebibliography}
 
 \end{document}
+
+
+
+
+
+
 
 
 
