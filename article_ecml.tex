@@ -351,12 +351,12 @@ We evaluate three workflow instances commonly used in scientific workflow schedu
 
 The heterogeneous resource model is defined in the experiment configuration. The tier template is aligned with the Edge-Fog Cloud reference setting proposed by Mohan and Kangasharju \cite{mohan2016edgefog}. Table~\ref{tab:envjson} reproduces the exact tier-level parameters used in the artifact.
 
-\begin{table}[t]
+\begin{table}[H]
 \caption{Resource Configuration Used in Experiments}
 \label{tab:envjson}
 \centering
 \small
-\begin{tabular}{@{}lrrrrrr@{}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrrrrr@{}}
 \toprule
 Tier & Devices & Proc. rate & Cost & Idle P. & Work P. & Up/Down BW \\
 \midrule
@@ -364,9 +364,11 @@ Edge & 5 & 1000 & 0.02 & 30 & 700 & 20480 / 20480 \\
 Fog & 5 & 1300 & 0.48 & 30 & 700 & 10000 / 10000 \\
 Cloud & 5 & 1600 & 0.96 & 1332 & 1648 & 100 / 10000 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \vspace{0.3ex}
-{\footnotesize Devices: number of nodes; Proc. rate: processing rate in million instructions per second (MIPS); Cost: processing cost per second; Idle P./Work P.: power in watts; Up/Down BW: uplink/downlink bandwidth in megabits per second.}
+\begin{minipage}{\textwidth}
+\footnotesize Devices: number of nodes; Proc. rate: processing rate in million instructions per second (MIPS); Cost: processing cost per second; Idle P./Work P.: power in watts; Up/Down BW: uplink/downlink bandwidth in megabits per second.
+\end{minipage}
 \end{table}
 
 This table creates the optimization tension used throughout the study. In early debugging runs, it was easy to over-focus on cloud processing rate alone; the bandwidth asymmetry and cost/power gradients explain why that intuition is often wrong.
@@ -435,12 +437,12 @@ In our runs across the three benchmarks, ADARE wins \textbf{18/18} quality compa
 \subsection{Ablation Protocol (V1--V5) and Artifact-Ready Variant Definition}
 To isolate module effects in our runs, we keep the same paired-run fairness constraints and grow the ablation step by step. We start with \textbf{V1} (NSGA-III baseline), then add UCB crossover control in \textbf{V2}, density-aware mutation in \textbf{V3}, partial archive injection/final-pool guidance in \textbf{V4}, and full ADARE in \textbf{V5}.
 
-\begin{table}[t]
+\begin{table}[H]
 \caption{Numerical Ablation Results (V1--V5, 20 paired runs per benchmark)}
 \label{tab:ablation_design}
 \centering
 \small
-\begin{tabular}{@{}lccccccc@{}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccccc@{}}
 \toprule
 Variant & UCB & Mut. & Arch. & Core (\%) & Obj. (\%) & Time (\%) & Wins \\
 \midrule
@@ -450,22 +452,22 @@ V3 & Y & Y & N & 1.95 & 7.29 & 8.63 & 11/15 \\
 V4 & Y & Y & P & 17.37 & 7.54 & 8.06 & 15/15 \\
 V5 & Y & Y & Y & 30.60 & 9.47 & 6.93 & 15/15 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table}
 
-Numerically, V2 and V3 already improve over V1, but gains remain modest and less consistent across benchmarks (quality wins: 11/18 and 14/18). V4 and V5 are both stronger (18/18 quality wins), with V5 giving the best mean core-quality gain. In Table~\ref{tab:ablation_design}, N/Y/P denote No/Yes/Partial for module activation. This supports the stacked-control reading: the combined modules matter more than any isolated toggle.
+Numerically, V2 and V3 improve over V1 but remain less consistent (quality wins: 11/18 and 14/18), while V4 and V5 are both stronger (18/18), with V5 giving the best mean core gain. In Table~\ref{tab:ablation_design}, N/Y/P denote No/Yes/Partial. For a metric $m$, we compute $g_m(\%)=\frac{A_m-N_m}{|N_m|}\times100$ for max metrics and $g_m(\%)=\frac{N_m-A_m}{|N_m|}\times100$ for min metrics. Core (\%) averages $g_m$ over HV, IGD, spacing, epsilon, and coverage; Obj. (\%) averages $g_m$ over makespan\_best, latency\_best, cost\_best, and energy\_best; Time (\%) is runtime gain; Wins counts positive core gains across the three benchmarks (out of 15). Positive values indicate ADARE gains.
 
 \subsection{Qualitative Pareto and Convergence Analysis}
 We inspect representative Pareto projections and convergence traces next because the tables alone do not show \emph{how} the search behavior changes.
 
 \begin{figure}[t]
 \centering
-\begin{minipage}[t]{0.48\textwidth}
+\begin{minipage}[t]{0.485\textwidth}
 \centering
 \includegraphics[width=\linewidth]{pareto_test_montage25.png}\\[-0.5ex]
 \scriptsize (a) Montage\_25
 \end{minipage}\hfill
-\begin{minipage}[t]{0.48\textwidth}
+\begin{minipage}[t]{0.485\textwidth}
 \centering
 \includegraphics[width=\linewidth]{pareto_test_cybershake30.png}\\[-0.5ex]
 \scriptsize (b) CyberShake\_30
@@ -473,12 +475,12 @@ We inspect representative Pareto projections and convergence traces next because
 
 \vspace{0.6ex}
 
-\begin{minipage}[t]{0.48\textwidth}
+\begin{minipage}[t]{0.485\textwidth}
 \centering
 \includegraphics[width=\linewidth]{pareto_test_epigenomics24.png}\\[-0.5ex]
 \scriptsize (c) Epigenomics\_24
 \end{minipage}\hfill
-\begin{minipage}[t]{0.48\textwidth}
+\begin{minipage}[t]{0.485\textwidth}
 \centering
 \includegraphics[width=\linewidth]{pareto_test_cybershake100.png}\\[-0.5ex]
 \scriptsize (d) CyberShake\_100
@@ -491,12 +493,12 @@ Figure~\ref{fig:pareto_all} is consistent with the quantitative results: ADARE e
 
 \begin{figure}[t]
 \centering
-\begin{minipage}[t]{0.48\textwidth}
+\begin{minipage}[t]{0.485\textwidth}
 \centering
 \includegraphics[width=\linewidth]{convergence_test_montage25.png}\\[-0.5ex]
 \scriptsize (a) Montage\_25
 \end{minipage}\hfill
-\begin{minipage}[t]{0.48\textwidth}
+\begin{minipage}[t]{0.485\textwidth}
 \centering
 \includegraphics[width=\linewidth]{convergence_test_cybershake30.png}\\[-0.5ex]
 \scriptsize (b) CyberShake\_30
@@ -504,7 +506,7 @@ Figure~\ref{fig:pareto_all} is consistent with the quantitative results: ADARE e
 
 \vspace{0.6ex}
 
-\begin{minipage}[t]{0.68\textwidth}
+\begin{minipage}[t]{0.69\textwidth}
 \centering
 \includegraphics[width=\linewidth]{convergence_test_epigenomics24.png}\\[-0.5ex]
 \scriptsize (c) Epigenomics\_24
@@ -620,6 +622,13 @@ Deelman, E., Singh, G., Su, M.-H., et al.: Pegasus: A framework for mapping comp
 \end{thebibliography}
 
 \end{document}
+
+
+
+
+
+
+
 
 
 
