@@ -67,7 +67,9 @@ class AdareAlgorithm(BaseAlgorithm):
             alpha=float(self.algorithm_config.get("q_learning_alpha", 0.2)),
         )
         self.heuristic_mutation_rate = float(self.algorithm_config.get("heuristic_mutation_rate", 0.7))
+        self.use_adaptive_mutation = bool(self.algorithm_config.get("use_adaptive_mutation", True))
         self.archive_size = int(self.algorithm_config.get("archive_size", self.population_size))
+        self.enable_archive = bool(self.algorithm_config.get("enable_archive", True))
         self.archive_injection_rate = float(self.algorithm_config.get("archive_injection_rate", 0.1))
         self.local_search_probability = float(self.algorithm_config.get("local_search_probability", 0.1))
         self.local_search_tasks = int(self.algorithm_config.get("local_search_tasks", 2))
@@ -299,6 +301,12 @@ class AdareAlgorithm(BaseAlgorithm):
             cloned.fitness.values = tuple(float(v) for v in individual.fitness.values)
         return cloned
 
+    def _baseline_mutation(self, individual: list[int]) -> None:
+        """Apply NSGA-III style uniform integer mutation."""
+        for idx in range(len(individual)):
+            if self.random.random() < self.gene_mutation_probability:
+                individual[idx] = self.random.randrange(self.num_nodes)
+
     def _effective_offspring_ratio(self, generation: int, diversity: float, stagnation: int) -> float:
         """Adapt offspring size ratio to progress, diversity, and stagnation state."""
         progress = generation / max(1, self.generations - 1)
@@ -474,6 +482,11 @@ class AdareAlgorithm(BaseAlgorithm):
 
     def _update_archive(self, candidates: List[Any]) -> None:
         """Refresh bounded archive using dominance filtering and scalar ranking."""
+        if (not self.enable_archive) or self.archive_size <= 0:
+            self.archive_keys = []
+            self.archive_fitness = {}
+            return
+
         scored_map: Dict[tuple[int, ...], tuple[tuple[float, ...], float]] = {
             key: (fit, scalar_fitness(fit)) for key, fit in self.archive_fitness.items()
         }
@@ -527,7 +540,7 @@ class AdareAlgorithm(BaseAlgorithm):
 
     def _inject_archive(self, offspring: List[Any], generation: int) -> None:
         """Inject archive samples into offspring with a decaying replacement rate."""
-        if not self.archive_keys:
+        if (not self.enable_archive) or (not self.archive_keys):
             return
         factor = 1.0 - 0.5 * (generation / max(1, self.generations - 1))
         n_inject = int(self.archive_injection_rate * len(offspring) * factor)
@@ -806,11 +819,12 @@ class AdareAlgorithm(BaseAlgorithm):
         start_time = time.perf_counter()
         try:
             population = self.create_population()
-            if self.seed_archive_with_energy_balanced:
-                balanced_seed = self._individual_from_key(self.energy_balanced_key)
-                self._update_archive(population + [balanced_seed])
-            else:
-                self._update_archive(population)
+            if self.enable_archive:
+                if self.seed_archive_with_energy_balanced:
+                    balanced_seed = self._individual_from_key(self.energy_balanced_key)
+                    self._update_archive(population + [balanced_seed])
+                else:
+                    self._update_archive(population)
             history = [self.best_objectives(population)]
             diversity = self._population_diversity(population)
             best_scalar = min(scalar_fitness(ind.fitness.values) for ind in population)
@@ -857,25 +871,31 @@ class AdareAlgorithm(BaseAlgorithm):
                 for mutant in offspring:
                     mutated = False
                     if self.random.random() < mutpb:
-                        adaptive_mutation(
-                            individual=mutant,
-                            rng=self.random,
-                            generation=gen,
-                            max_generations=self.generations,
-                            diversity=diversity,
-                            task_rankings=self.task_rankings,
-                            energy_node_order=self.energy_node_order,
-                            energy_guided_rate=self.energy_guided_mutation_rate,
-                            num_nodes=self.num_nodes,
-                            heuristic_mutation_rate=self.heuristic_mutation_rate,
-                            base_gene_mutation_probability=self.gene_mutation_probability,
-                        )
+                        if self.use_adaptive_mutation:
+                            adaptive_mutation(
+                                individual=mutant,
+                                rng=self.random,
+                                generation=gen,
+                                max_generations=self.generations,
+                                diversity=diversity,
+                                task_rankings=self.task_rankings,
+                                energy_node_order=self.energy_node_order,
+                                energy_guided_rate=self.energy_guided_mutation_rate,
+                                num_nodes=self.num_nodes,
+                                heuristic_mutation_rate=self.heuristic_mutation_rate,
+                                base_gene_mutation_probability=self.gene_mutation_probability,
+                            )
+                        else:
+                            self._baseline_mutation(mutant)
                         del mutant.fitness.values
                         mutated = True
 
-                    stagnation_factor = min(1.0, stagnation / self.stagnation_patience)
-                    local_search_threshold = self.local_search_probability * (0.20 + 0.80 * (1.0 - diversity))
-                    local_search_threshold *= 0.50 + 0.50 * stagnation_factor
+                    if self.use_adaptive_mutation:
+                        stagnation_factor = min(1.0, stagnation / self.stagnation_patience)
+                        local_search_threshold = self.local_search_probability * (0.20 + 0.80 * (1.0 - diversity))
+                        local_search_threshold *= 0.50 + 0.50 * stagnation_factor
+                    else:
+                        local_search_threshold = 0.0
                     if mutated and self.random.random() < min(1.0, local_search_threshold):
                         repaired, repaired_fit, improved = greedy_local_repair(
                             individual=list(mutant),
@@ -914,7 +934,7 @@ class AdareAlgorithm(BaseAlgorithm):
                 population = tools.selNSGA3(combined, self.population_size, self.reference_points)
                 if gen % self.elite_preservation_period == 0 or gen == self.generations - 1:
                     self._preserve_objective_elites(population, combined)
-                if gen % self.archive_update_period == 0 or gen == self.generations - 1:
+                if self.enable_archive and (gen % self.archive_update_period == 0 or gen == self.generations - 1):
                     self._update_archive(population)
 
                 current_best_scalar = min(scalar_fitness(ind.fitness.values) for ind in population)
@@ -929,19 +949,20 @@ class AdareAlgorithm(BaseAlgorithm):
 
             final_population = list(population)
             present_keys = {genotype_key(ind) for ind in final_population}
-            for key in self.archive_keys:
-                if key in present_keys:
-                    continue
-                archived = self.individual_cls(list(key))
-                fit = self.archive_fitness.get(key)
-                if fit is None:
-                    fit = self.fitness_cache.get(key)
-                if fit is None:
-                    fit = self.evaluate(archived)
-                    self.fitness_cache[key] = fit
-                archived.fitness.values = fit
-                final_population.append(archived)
-                present_keys.add(key)
+            if self.enable_archive:
+                for key in self.archive_keys:
+                    if key in present_keys:
+                        continue
+                    archived = self.individual_cls(list(key))
+                    fit = self.archive_fitness.get(key)
+                    if fit is None:
+                        fit = self.fitness_cache.get(key)
+                    if fit is None:
+                        fit = self.evaluate(archived)
+                        self.fitness_cache[key] = fit
+                    archived.fitness.values = fit
+                    final_population.append(archived)
+                    present_keys.add(key)
             if self.append_energy_anchor_final:
                 self._append_fixed_solution(final_population, present_keys, self.energy_anchor_key)
             if self.append_energy_balanced_final:

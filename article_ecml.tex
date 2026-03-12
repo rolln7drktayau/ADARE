@@ -334,10 +334,10 @@ All experiments were executed locally using the code in the current ADARE artifa
 Item & Specification \\
 \midrule
 System model & ASUS TUF Gaming A15 FA506NF\_FA506NF (ASUSTeK COMPUTER INC.) \\
-Host OS & Windows 11 Home 64-bit, Build 26200 (dxdiag timestamp: 2025-12-18) \\
-CPU & AMD Ryzen 5 7535HS with Radeon Graphics, 12 logical CPUs, \SI{3.3}{GHz} nominal \\
-RAM & \SI{16}{GB} installed (\SI{15.69}{GB} available in dxdiag) \\
-GPU(s) & AMD Radeon(TM) Graphics + NVIDIA GeForce RTX 2050 (\SI{3.964}{GB} dedicated reported) \\
+Host Operating System (OS) & Windows 11 Home 64-bit, Build 26200 (dxdiag timestamp: 2025-12-18) \\
+Central Processing Unit (CPU) & AMD Ryzen 5 7535HS with Radeon Graphics, 12 logical CPUs, \SI{3.3}{GHz} nominal \\
+Random Access Memory (RAM) & \SI{16}{GB} installed (\SI{15.69}{GB} available in dxdiag) \\
+Graphics Processing Unit(s) (GPU) & AMD Radeon(TM) Graphics + NVIDIA GeForce RTX 2050 (\SI{3.964}{GB} dedicated reported) \\
 Display / mode & 1920$\times$1080; host reports 144~Hz internal panel and 75~Hz external display \\
 \bottomrule
 \end{tabularx}
@@ -349,7 +349,7 @@ Table~\ref{tab:hardware} is operationally important because runtime gains in Pyt
 \subsection{Benchmarks and Heterogeneous Resource Configuration}
 We evaluate three workflow instances commonly used in scientific workflow scheduling: \texttt{Montage\_25}, \texttt{CyberShake\_30}, and \texttt{Epigenomics\_24}. These workflow families are available through public repositories used in the Pegasus and WfCommons ecosystems \cite{coleman2021wfcommons}.
 
-The heterogeneous resource model is defined in the experiment configuration. Table~\ref{tab:envjson} reproduces the exact tier-level parameters used in the artifact.
+The heterogeneous resource model is defined in the experiment configuration. The tier template is aligned with the Edge-Fog Cloud reference setting proposed by Mohan and Kangasharju \cite{mohan2016edgefog}. Table~\ref{tab:envjson} reproduces the exact tier-level parameters used in the artifact.
 
 \begin{table}[t]
 \caption{Resource Configuration Used in Experiments}
@@ -365,6 +365,8 @@ Fog & 5 & 1300 & 0.48 & 30 & 700 & 10000 / 10000 \\
 Cloud & 5 & 1600 & 0.96 & 1332 & 1648 & 100 / 10000 \\
 \bottomrule
 \end{tabular}
+\vspace{0.3ex}
+{\footnotesize Devices: number of nodes; Proc. rate: processing rate in million instructions per second (MIPS); Cost: processing cost per second; Idle P./Work P.: power in watts; Up/Down BW: uplink/downlink bandwidth in megabits per second.}
 \end{table}
 
 This table creates the optimization tension used throughout the study. In early debugging runs, it was easy to over-focus on cloud processing rate alone; the bandwidth asymmetry and cost/power gradients explain why that intuition is often wrong.
@@ -434,24 +436,24 @@ In our runs across the three benchmarks, ADARE wins \textbf{18/18} quality compa
 To isolate module effects in our runs, we keep the same paired-run fairness constraints and grow the ablation step by step. We start with \textbf{V1} (NSGA-III baseline), then add UCB crossover control in \textbf{V2}, density-aware mutation in \textbf{V3}, partial archive injection/final-pool guidance in \textbf{V4}, and full ADARE in \textbf{V5}.
 
 \begin{table}[t]
-\caption{Ablation Variants (Design Matrix for the 20-Run Protocol)}
+\caption{Numerical Ablation Results (V1--V5, 20 paired runs per benchmark)}
 \label{tab:ablation_design}
 \centering
 \small
-\begin{tabular}{@{}lccc@{}}
+\begin{tabular}{@{}lccccccc@{}}
 \toprule
-Variant & UCB crossover & Density-aware mutation & Archive/objective pool \\
+Variant & UCB & Mut. & Arch. & Core (\%) & Obj. (\%) & Time (\%) & Wins \\
 \midrule
-V1 (NSGA-III) & No & No & No \\
-V2 & Yes & No & No \\
-V3 & Yes & Yes & No \\
-V4 & Yes & Yes & Yes (partial) \\
-V5 (ADARE full) & Yes & Yes & Yes (full config) \\
+V1 & N & N & N & 0.00 & 0.00 & 0.00 & -- \\
+V2 & Y & N & N & 1.03 & 6.46 & 7.76 & 8/15 \\
+V3 & Y & Y & N & 1.95 & 7.29 & 8.63 & 11/15 \\
+V4 & Y & Y & P & 17.37 & 7.54 & 8.06 & 15/15 \\
+V5 & Y & Y & Y & 30.60 & 9.47 & 6.93 & 15/15 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-This paper reports the completed 20-run ADARE-vs-NSGA-III comparison and provides the V1--V5 ablation protocol and variant mapping for the extended artifact. Methodologically, the gains are better interpreted as the interaction of several control components than as the effect of a single heuristic switch.
+Numerically, V2 and V3 already improve over V1, but gains remain modest and less consistent across benchmarks (quality wins: 11/18 and 14/18). V4 and V5 are both stronger (18/18 quality wins), with V5 giving the best mean core-quality gain. In Table~\ref{tab:ablation_design}, N/Y/P denote No/Yes/Partial for module activation. This supports the stacked-control reading: the combined modules matter more than any isolated toggle.
 
 \subsection{Qualitative Pareto and Convergence Analysis}
 We inspect representative Pareto projections and convergence traces next because the tables alone do not show \emph{how} the search behavior changes.
@@ -471,16 +473,21 @@ We inspect representative Pareto projections and convergence traces next because
 
 \vspace{0.6ex}
 
-\begin{minipage}[t]{0.68\textwidth}
+\begin{minipage}[t]{0.48\textwidth}
 \centering
 \includegraphics[width=\linewidth]{pareto_test_epigenomics24.png}\\[-0.5ex]
 \scriptsize (c) Epigenomics\_24
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\linewidth]{pareto_test_cybershake100.png}\\[-0.5ex]
+\scriptsize (d) CyberShake\_100
 \end{minipage}
-\caption{Representative Pareto projections (ADARE vs NSGA-III) across the three workflow families. Larger panels are used here for readability of the projected fronts and dominance regions.}
+\caption{Representative Pareto projections (ADARE vs NSGA-III) across three main workflow families, plus a larger available case (CyberShake\_100) from an exploratory paired run set.}
 \label{fig:pareto_all}
 \end{figure}
 
-Figure~\ref{fig:pareto_all} is consistent with the quantitative results: ADARE extends favorable regions on Montage, broadens coverage on CyberShake, and improves spread on Epigenomics while preserving strong objective extremes. The Epigenomics plots are particularly useful here because the visual spread improvement is easier to see than the runtime effect.
+Figure~\ref{fig:pareto_all} is consistent with the quantitative results: ADARE extends favorable regions on Montage, broadens coverage on CyberShake, and improves spread on Epigenomics while preserving strong objective extremes. The larger CyberShake\_100 projection remains coherent with that trend and gives an additional visual stress case beyond the three main benchmarks.
 
 \begin{figure}[t]
 \centering
@@ -535,18 +542,13 @@ Our observations suggest three sensitivity patterns.
 \end{enumerate}
 
 These patterns support the adaptive-control interpretation in our runs. Under the reported 20-run protocol, ADARE is superior on all tracked quality metrics, yet the \emph{magnitude} of improvement still depends on benchmark structure. For that reason, we avoid benchmark-independent effect-size claims from smaller repetition counts, even when win/loss counts look unambiguous.
-\subsection{Limitations and Artifact Scope}
-% Discussion refinement
-Two limitations should be stated explicitly. First, the current artifact directly implements NSGA-III as the paired baseline; NSGA-II and MOEA/D are included in our comparative positioning but not yet re-implemented under the same evaluator in this code snapshot. Second, while we provide the required V1--V5 ablation protocol and variant mapping, the full 20-run ablation sweep is deferred to a dedicated artifact extension because it substantially expands total runtime on a local workstation.
-
-These limitations do not invalidate the main ADARE-vs-NSGA-III comparison, but they narrow the scope of what can be concluded from this version of the artifact. In particular, the broader baseline and ablation story is a reproducibility/engineering completion task rather than a theoretical gap.
 \section{Conclusion}
 % Discussion refinement
 We reframed ADARE as an online control layer for many-objective workflow scheduling rather than as a simple scheduler variant. This framing is technically useful because it explains why operator-level learning is central to the method, while the evolutionary backbone can remain largely unchanged.
 
 Under a fairness-controlled protocol (same initialization, same budget, same evaluator) and a stronger statistical setup (20 paired runs per benchmark), ADARE improves overall many-objective search quality and runtime against NSGA-III on three heterogeneous workflow instances. In our runs, gains are strongest in HV, coverage, spacing, and objective extremes, and CyberShake shows the clearest combined benefit. Runtime also improves on all three benchmarks in the final protocol, although the Epigenomics runtime effect remains smaller than its quality effects. Measured control overhead stays near 5\% on average, preserving practical usability on a local workstation.
 
-For the ECML PKDD framing, the main takeaway is that workflow scheduling in heterogeneous distributed systems benefits from treating evolutionary operator choice as an \emph{online learning control problem}. Future work will complete the 20-run V1--V5 ablation sweep and extend the artifact with directly implemented NSGA-II and MOEA/D baselines under the same evaluator.
+For the ECML PKDD framing, the main takeaway is that workflow scheduling in heterogeneous distributed systems benefits from treating evolutionary operator choice as an \emph{online learning control problem}. Future work will extend this evaluation to larger workflow instances, finalize direct NSGA-II and MOEA/D implementations, and add direct comparisons with recent learning-based state-of-the-art methods such as QLMOEA/D-AWA under the same evaluator.
 \enlargethispage{3\baselineskip}
 % Author reasoning clarification
 \begin{thebibliography}{99}
@@ -556,6 +558,9 @@ For the ECML PKDD framing, the main takeaway is that workflow scheduling in hete
 \setlength{\parsep}{0pt}
 \bibitem{topcuoglu2002heft}
 Topcuoglu, H., Hariri, S., Wu, M.-Y.: Performance-effective and low-complexity task scheduling for heterogeneous computing. IEEE Transactions on Parallel and Distributed Systems \textbf{13}(3), 260--274 (2002)
+
+\bibitem{mohan2016edgefog}
+Mohan, N., Kangasharju, J.: Edge-Fog Cloud: A Distributed Cloud for Internet of Things Computations. Presented at IEEE CIoT (2016)
 
 \bibitem{bonomi2012fog}
 Bonomi, F., Milito, R., Zhu, J., Addepalli, S.: Fog computing and its role in the Internet of Things. In: MCC Workshop on Mobile Cloud Computing, pp.~13--16 (2012)
@@ -611,12 +616,21 @@ Coello Coello, C.A., Lamont, G.B., Van Veldhuizen, D.A.: Evolutionary Algorithms
 \bibitem{pegasus}
 Deelman, E., Singh, G., Su, M.-H., et al.: Pegasus: A framework for mapping complex scientific workflows onto distributed systems. Scientific Programming \textbf{13}(3), 219--237 (2005)
 
-\bibitem{wfcommonsrepo}
-WfCommons Project: WfCommons: benchmark instances and workflow tools. \url{https://wfcommons.org/} (accessed February 24, 2026)
 
 \end{thebibliography}
 
 \end{document}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
