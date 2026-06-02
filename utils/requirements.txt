@@ -3,4 +3,5 @@ scipy
 matplotlib
 deap
 pymoo
+wfcommons
 g4f
