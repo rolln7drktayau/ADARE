@@ -1,0 +1,7 @@
+{
+    "description": "NSGA-II baseline with fixed two-point crossover and uniform mutation",
+    "gene_mutation_probability": 0.08,
+    "parallel_workers": 10,
+    "parallel_threshold": 24,
+    "use_fitness_cache": true
+}

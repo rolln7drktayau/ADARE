@@ -1,0 +1,11 @@
+{
+    "description": "Q-learning-assisted NSGA-III baseline inspired by adaptive operator selection",
+    "gene_mutation_probability": 0.08,
+    "q_alpha": 0.25,
+    "q_gamma": 0.7,
+    "epsilon_start": 0.3,
+    "epsilon_end": 0.05,
+    "parallel_workers": 10,
+    "parallel_threshold": 24,
+    "use_fitness_cache": true
+}
