@@ -10,7 +10,15 @@ from typing import Any, Dict, List, Sequence
 
 import numpy as np
 
-from algorithms import AdareAlgorithm, MOEADAlgorithm, NSGA2Algorithm, NSGA3Algorithm, QLNSGA3Algorithm
+from algorithms import (
+    AdareAlgorithm,
+    MOEADAlgorithm,
+    NSGA2Algorithm,
+    NSGA3Algorithm,
+    OVEAAlgorithm,
+    QMOEADAWAAlgorithm,
+    QLNSGA3Algorithm,
+)
 from evaluation import coverage_metric, filter_non_dominated, metric_gain_percent, quality_indicators
 from main import build_initial_population
 from problem import build_nodes, load_environments, load_tasks, topological_sort
@@ -22,6 +30,8 @@ ALGORITHMS = {
     "NSGA-II": (NSGA2Algorithm, "config/nsga2_config.json"),
     "MOEA/D": (MOEADAlgorithm, "config/moead_config.json"),
     "QL-NSGA-III": (QLNSGA3Algorithm, "config/qlnsga3_config.json"),
+    "OVEA-style": (OVEAAlgorithm, "config/ovea_config.json"),
+    "QMOEA/D-AWA-style": (QMOEADAWAAlgorithm, "config/qmoeadawa_config.json"),
 }
 
 QUALITY_DIRECTIONS = {

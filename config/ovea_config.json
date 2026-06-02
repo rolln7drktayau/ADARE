@@ -1,0 +1,12 @@
+{
+    "description": "OVEA-style reference-vector MOEA with Q-learning adaptive crossover selection",
+    "gene_mutation_probability": 0.08,
+    "q_alpha": 0.2,
+    "q_gamma": 0.65,
+    "epsilon_start": 0.25,
+    "epsilon_end": 0.03,
+    "apd_theta": 5.0,
+    "parallel_workers": 10,
+    "parallel_threshold": 24,
+    "use_fitness_cache": true
+}
