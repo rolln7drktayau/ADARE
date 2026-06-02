@@ -43,14 +43,22 @@ def main() -> None:
             wins[key] += 1
 
     scales = ["small", "1000", "3000"]
-    baselines = ["NSGA-III", "NSGA-II", "MOEA/D", "QL-NSGA-III"]
+    baselines = [
+        "NSGA-III",
+        "NSGA-II",
+        "MOEA/D",
+        "QL-NSGA-III",
+        "OVEA-style",
+        "QMOEA/D-AWA-style",
+    ]
     x = np.arange(len(scales))
-    width = 0.18
+    width = 0.13
 
-    fig, ax = plt.subplots(figsize=(11, 6))
+    fig, ax = plt.subplots(figsize=(13, 6.5))
+    center = (len(baselines) - 1) / 2
     for offset, baseline in enumerate(baselines):
         values = [np.mean(grouped.get((scale, baseline), [np.nan])) for scale in scales]
-        ax.bar(x + (offset - 1.5) * width, values, width=width, label=baseline)
+        ax.bar(x + (offset - center) * width, values, width=width, label=baseline)
     ax.axhline(0.0, color="#333333", linewidth=1)
     ax.set_xticks(x)
     ax.set_xticklabels(["Small", "1000 tasks", "3000 tasks"], fontsize=11)
@@ -58,18 +66,18 @@ def main() -> None:
     ax.set_title("Extended ADARE Comparison Across Workflow Scales", fontsize=14)
     ax.tick_params(axis="y", labelsize=10)
     ax.grid(axis="y", alpha=0.25, linestyle="--")
-    ax.legend(ncol=2, fontsize=10)
+    ax.legend(ncol=3, fontsize=9)
     fig.tight_layout()
     fig.savefig(args.output_dir / "extended_core_gain_by_scale.png", dpi=300)
     plt.close(fig)
 
-    fig, ax = plt.subplots(figsize=(11, 6))
+    fig, ax = plt.subplots(figsize=(13, 6.5))
     for offset, baseline in enumerate(baselines):
         values = [
             100.0 * wins.get((scale, baseline), 0) / max(1, counts.get((scale, baseline), 0))
             for scale in scales
         ]
-        ax.bar(x + (offset - 1.5) * width, values, width=width, label=baseline)
+        ax.bar(x + (offset - center) * width, values, width=width, label=baseline)
     ax.set_xticks(x)
     ax.set_xticklabels(["Small", "1000 tasks", "3000 tasks"], fontsize=11)
     ax.set_ylim(0, 100)
@@ -77,7 +85,7 @@ def main() -> None:
     ax.set_title("ADARE Core-Metric Win Rate vs Extended Baselines", fontsize=14)
     ax.tick_params(axis="y", labelsize=10)
     ax.grid(axis="y", alpha=0.25, linestyle="--")
-    ax.legend(ncol=2, fontsize=10)
+    ax.legend(ncol=3, fontsize=9)
     fig.tight_layout()
     fig.savefig(args.output_dir / "extended_core_win_rate_by_scale.png", dpi=300)
     plt.close(fig)
