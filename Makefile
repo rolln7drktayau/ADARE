@@ -21,7 +21,7 @@ BUILD_DIR = $(DATA_DIR)/build
 COOKIES_DIR = har_and_cookies
 
 # Main commands
-.PHONY: all menu run clean build setup format lint help smoke main20 extended-small extended-1000-r20 extended-3000-r20 ablation paper
+.PHONY: all menu run adare adare-1000 smoke clean build setup format lint help main20 extended-small extended-1000-r20 extended-3000-r20 ablation paper
 
 all: menu
 
@@ -32,6 +32,12 @@ menu:
 run:
 	@mkdir -p $(OUTPUT_DIR)/plots $(OUTPUT_DIR)/reports
 	$(PYTHON) main.py
+
+adare:
+	$(PYTHON) run_adare.py --benchmarks Montage_25 --runs 1 --generations 70 --population-size 100
+
+adare-1000:
+	$(PYTHON) run_adare.py --benchmarks CyberShake_1000 --runs 1 --generations 15 --population-size 80
 
 smoke:
 	$(PYTHON) main.py --benchmarks Montage_25 --runs 1 --generations 5 --population-size 30
@@ -108,6 +114,8 @@ help:
 	@echo "Available commands:"
 	@echo "  make / make menu      - Open the interactive ADARE menu with estimated durations"
 	@echo "  make run              - Run the ADARE algorithm with sample data"
+	@echo "  make adare            - Run ADARE only on Montage_25 (~1-5 min)"
+	@echo "  make adare-1000       - Run ADARE only on CyberShake_1000 (~5-15 min)"
 	@echo "  make smoke            - Quick sanity run (~1-3 min)"
 	@echo "  make main20           - Main 20-run paper protocol (~45-90 min)"
 	@echo "  make extended-small   - Extended small-suite comparison (~20-45 min)"

@@ -118,6 +118,40 @@ def custom_benchmark() -> int:
     )
 
 
+def adare_only_custom() -> int:
+    print("\nBenchmarks disponibles:")
+    available = sorted(
+        path.stem
+        for path in (ROOT / "data" / "benchmarks").rglob("*.json")
+        if path.name != "tasks.json"
+    )
+    for idx, name in enumerate(available, 1):
+        print(f"  {idx:>2}. {name}")
+    raw = input("\nBenchmark ou numero: ").strip()
+    if raw.isdigit() and 1 <= int(raw) <= len(available):
+        benchmark = available[int(raw) - 1]
+    else:
+        benchmark = raw
+    runs = input("Runs [1]: ").strip() or "1"
+    generations = input("Generations [70]: ").strip() or "70"
+    population = input("Population [100]: ").strip() or "100"
+    return run_command(
+        [
+            PYTHON,
+            "run_adare.py",
+            "--benchmarks",
+            benchmark,
+            "--runs",
+            runs,
+            "--generations",
+            generations,
+            "--population-size",
+            population,
+        ],
+        f"ADARE seul sur {benchmark}",
+    )
+
+
 def extended_custom() -> int:
     benchmarks = input("Benchmarks separes par espaces [Montage_25 CyberShake_30 Epigenomics_24]: ").strip()
     if not benchmarks:
@@ -164,19 +198,22 @@ def actions() -> list[MenuAction]:
 
     return [
         MenuAction("1", "Setup environnement", "2-8 min", "Installe/actualise les dependances Python.", lambda: run_command([PYTHON, "-m", "pip", "install", "-r", "requirements.txt"], "Setup")),
-        MenuAction("2", "Smoke test rapide", "1-3 min", "Petit run ADARE vs NSGA-III pour verifier que tout demarre.", lambda: run_command([PYTHON, "main.py", "--benchmarks", "Montage_25", "--runs", "1", "--generations", "5", "--population-size", "30"], "Smoke test")),
-        MenuAction("3", "Protocole papier principal", "45-90 min", "20 runs sur Montage_25, CyberShake_30, Epigenomics_24.", lambda: run_command([PYTHON, "main.py", "--benchmarks", *small, "--runs", "20", "--generations", "70", "--population-size", "100"], "Protocole papier principal")),
-        MenuAction("4", "Comparaison etendue rapide", "20-45 min", "Small suite contre toutes les baselines.", lambda: run_command([PYTHON, "run_extended_comparison.py", "--benchmarks", *small, "--algorithms", *all_algos, "--runs", "5", "--generations", "15", "--population-size", "80", "--output-dir", "output/extended_small_menu"], "Comparaison etendue rapide")),
-        MenuAction("5", "Long 1000 r20", "2h-2h15", "20 runs sur les workflows 1000 avec baselines adaptatives.", lambda: run_command([PYTHON, "run_extended_comparison.py", "--benchmarks", *wf1000, "--algorithms", *adaptive_algos, "--runs", "20", "--generations", "15", "--population-size", "80", "--output-dir", "output/extended_1000_r20"], "Long 1000 r20")),
-        MenuAction("6", "Long 3000 r20", "3h-4h", "20 runs sur les workflows WfCommons 3000 avec baselines adaptatives.", lambda: run_command([PYTHON, "run_extended_comparison.py", "--benchmarks", *wf3000, "--algorithms", *adaptive_algos, "--runs", "20", "--generations", "8", "--population-size", "60", "--output-dir", "output/extended_3000_r20"], "Long 3000 r20")),
-        MenuAction("7", "Ablation V1-V5", "30-75 min", "Recalcule l'ablation des modules ADARE.", lambda: run_command([PYTHON, "run_ablation_v1_v5.py", "--runs", "20", "--output-dir", "output/ablation_full"], "Ablation V1-V5")),
-        MenuAction("8", "Figures etendues", "<1 min", "Regenere les figures depuis results/extended.", lambda: run_command([PYTHON, "evaluation/plot_extended_results.py", "--summary", "results/extended/extended_global_summary.csv", "--output-dir", "Figures"], "Figures etendues")),
-        MenuAction("9", "Compiler et synchroniser PDF", "10-30 sec", "Compile article_ecml.pdf et met a jour les deux PDFs demandes.", compile_paper),
-        MenuAction("10", "Benchmark personnalise", "variable", "Choisir benchmark, runs, generations, population.", custom_benchmark),
-        MenuAction("11", "Comparaison etendue personnalisee", "variable", "Choisir workflows, algorithmes, runs et budget.", extended_custom),
-        MenuAction("12", "Lint", "1-3 min", "Execute flake8.", lambda: run_command([PYTHON, "-m", "flake8", "."], "Lint")),
-        MenuAction("13", "Format", "1-3 min", "Execute black.", lambda: run_command([PYTHON, "-m", "black", "."], "Format")),
-        MenuAction("14", "Nettoyer sorties", "<1 min", "Nettoie output/cache/history sans toucher aux resultats versionnes.", clean_outputs),
+        MenuAction("2", "ADARE seul rapide", "1-5 min", "Execute seulement ADARE sur Montage_25.", lambda: run_command([PYTHON, "run_adare.py", "--benchmarks", "Montage_25", "--runs", "1", "--generations", "70", "--population-size", "100"], "ADARE seul rapide")),
+        MenuAction("3", "ADARE seul 1000", "5-15 min", "Execute seulement ADARE sur CyberShake_1000.", lambda: run_command([PYTHON, "run_adare.py", "--benchmarks", "CyberShake_1000", "--runs", "1", "--generations", "15", "--population-size", "80"], "ADARE seul 1000")),
+        MenuAction("4", "ADARE seul personnalise", "variable", "Choisir workflow, runs, generations, population.", adare_only_custom),
+        MenuAction("5", "Smoke test comparatif", "1-3 min", "Petit run ADARE vs NSGA-III pour verifier que tout demarre.", lambda: run_command([PYTHON, "main.py", "--benchmarks", "Montage_25", "--runs", "1", "--generations", "5", "--population-size", "30"], "Smoke test")),
+        MenuAction("6", "Protocole papier principal", "45-90 min", "20 runs sur Montage_25, CyberShake_30, Epigenomics_24.", lambda: run_command([PYTHON, "main.py", "--benchmarks", *small, "--runs", "20", "--generations", "70", "--population-size", "100"], "Protocole papier principal")),
+        MenuAction("7", "Comparaison etendue rapide", "20-45 min", "Small suite contre toutes les baselines.", lambda: run_command([PYTHON, "run_extended_comparison.py", "--benchmarks", *small, "--algorithms", *all_algos, "--runs", "5", "--generations", "15", "--population-size", "80", "--output-dir", "output/extended_small_menu"], "Comparaison etendue rapide")),
+        MenuAction("8", "Long 1000 r20", "2h-2h15", "20 runs sur les workflows 1000 avec baselines adaptatives.", lambda: run_command([PYTHON, "run_extended_comparison.py", "--benchmarks", *wf1000, "--algorithms", *adaptive_algos, "--runs", "20", "--generations", "15", "--population-size", "80", "--output-dir", "output/extended_1000_r20"], "Long 1000 r20")),
+        MenuAction("9", "Long 3000 r20", "3h-4h", "20 runs sur les workflows WfCommons 3000 avec baselines adaptatives.", lambda: run_command([PYTHON, "run_extended_comparison.py", "--benchmarks", *wf3000, "--algorithms", *adaptive_algos, "--runs", "20", "--generations", "8", "--population-size", "60", "--output-dir", "output/extended_3000_r20"], "Long 3000 r20")),
+        MenuAction("10", "Ablation V1-V5", "30-75 min", "Recalcule l'ablation des modules ADARE.", lambda: run_command([PYTHON, "run_ablation_v1_v5.py", "--runs", "20", "--output-dir", "output/ablation_full"], "Ablation V1-V5")),
+        MenuAction("11", "Figures etendues", "<1 min", "Regenere les figures depuis results/extended.", lambda: run_command([PYTHON, "evaluation/plot_extended_results.py", "--summary", "results/extended/extended_global_summary.csv", "--output-dir", "Figures"], "Figures etendues")),
+        MenuAction("12", "Compiler et synchroniser PDF", "10-30 sec", "Compile article_ecml.pdf et met a jour les deux PDFs demandes.", compile_paper),
+        MenuAction("13", "Benchmark comparatif personnalise", "variable", "Choisir benchmark, runs, generations, population.", custom_benchmark),
+        MenuAction("14", "Comparaison etendue personnalisee", "variable", "Choisir workflows, algorithmes, runs et budget.", extended_custom),
+        MenuAction("15", "Lint", "1-3 min", "Execute flake8.", lambda: run_command([PYTHON, "-m", "flake8", "."], "Lint")),
+        MenuAction("16", "Format", "1-3 min", "Execute black.", lambda: run_command([PYTHON, "-m", "black", "."], "Format")),
+        MenuAction("17", "Nettoyer sorties", "<1 min", "Nettoie output/cache/history sans toucher aux resultats versionnes.", clean_outputs),
     ]
 
 
