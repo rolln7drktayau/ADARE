@@ -50,7 +50,7 @@
 
 \begin{abstract}
 \begin{sloppypar}
-ADARE (Adaptive Data-driven Algorithm for Resource Evolution) is a learning-guided adaptive control layer for many-objective workflow scheduling in heterogeneous Edge/Fog/Cloud systems. The revised algorithm no longer treats operator selection as a single global UCB problem. It uses a \emph{Pareto-contextual} controller: the search state is discretized by generation phase, population diversity, and stagnation, and each context maintains its own UCB estimates over crossover operators. Rewards are computed from dominance events, objective-wise normalized improvement, balanced multi-objective progress, and genotype novelty, rather than from a fixed log-scalar proxy. ADARE couples this controller with density-aware mutation, bounded archive guidance, and exported controller traces for interpretability. We evaluate ADARE on Montage\_25, CyberShake\_30, and Epigenomics\_24 with a strict fairness protocol: same evaluator, same budget, same seeds, and paired 20-run comparisons per benchmark. Across the final protocol, ADARE wins 18/18 quality comparisons and 15/15 core-quality comparisons (Hypervolume (HV), Inverted Generational Distance (IGD), spacing, epsilon, coverage). Mean gains are +26.80\% on core quality, +10.70\% on best-objective metrics, and +5.50\% on runtime versus NSGA-III. We also add a 1000-task stress test on CyberShake, Inspiral, Montage, and Sipht with 10 evaluator workers; ADARE wins 22/24 tracked comparisons and 18/20 core-quality comparisons under this short-budget protocol. The contribution is therefore not a replacement for NSGA-III, but a lightweight and interpretable search-control mechanism designed for heterogeneous workflow scheduling where the useful operator changes with the search phase.
+ADARE (Adaptive Data-driven Algorithm for Resource Evolution) is a learning-guided adaptive control layer for many-objective workflow scheduling in heterogeneous Edge/Fog/Cloud systems. The revised algorithm no longer treats operator selection as a single global UCB problem. It uses a \emph{Pareto-contextual} controller: the search state is discretized by generation phase, population diversity, and stagnation, and each context maintains its own UCB estimates over crossover operators. Rewards are computed from dominance events, objective-wise normalized improvement, balanced multi-objective progress, and genotype novelty, rather than from a fixed log-scalar proxy. ADARE couples this controller with density-aware mutation, bounded archive guidance, and exported controller traces for interpretability. We evaluate ADARE on Montage\_25, CyberShake\_30, and Epigenomics\_24 with a strict fairness protocol: same evaluator, same budget, same seeds, and paired 20-run comparisons per benchmark. Across the final protocol, ADARE wins 18/18 quality comparisons and 15/15 core-quality comparisons (Hypervolume (HV), Inverted Generational Distance (IGD), spacing, epsilon, coverage). Mean gains are +26.80\% on core quality, +10.70\% on best-objective metrics, and +5.50\% on runtime versus NSGA-III. We also add 1000-task and WfCommons-generated 3000-task stress tests, with extended comparisons against NSGA-III, NSGA-II, MOEA/D, and a Q-learning-assisted NSGA-III baseline. Across the 3000-task suite, ADARE improves mean core quality by +19.54\% versus NSGA-III, +149.19\% versus NSGA-II, +35.08\% versus MOEA/D, and +0.95\% versus QL-NSGA-III. The contribution is therefore not a replacement for NSGA-III, but a lightweight and interpretable search-control mechanism designed for heterogeneous workflow scheduling where the useful operator changes with the search phase.
 \end{sloppypar}
 \end{abstract}
 \keywords{Online learning \and Many-objective optimization \and NSGA-III \and Multi-armed bandits \and Edge/Fog/Cloud \and Workflow scheduling}
@@ -461,6 +461,54 @@ Sipht\_1000 & 4/6 & 3/5 & 8.37 & 0.24 & 0.04 & HV and epsilon weaker \\
 
 Table~\ref{tab:stress1000} is important for interpretation. ADARE remains favorable on 22/24 tracked quality comparisons and 18/20 core-quality comparisons at 1000 tasks, with an average core-quality gain of 23.82\%. However, Sipht\_1000 exposes the current limit: the adaptive layer improves IGD, spacing, and coverage, but not HV or epsilon under this short budget. This confirms that the method scales beyond 24--30 tasks while also showing where longer budgets and additional baselines are still needed.
 
+\subsection{Extended Baselines and 3000-Task WfCommons Workflows}
+We also added a broader comparison requested by the reviews. The extended runner evaluates ADARE against four baselines under the same evaluator, initial population, budget, and 10-worker evaluation setting: NSGA-III, NSGA-II, MOEA/D, and QL-NSGA-III. QL-NSGA-III is a compact Q-learning-assisted NSGA-III baseline inspired by adaptive operator selection; it is not an exact reproduction of OVEA or QLMOEA/D-AWA.
+
+The extended workflow set has three scales: (i) smaller local benchmarks, (ii) Pegasus 1000-task workflows already present in the artifact, and (iii) five WfCommons-generated 3000-task workflows (Montage, Epigenomics, Seismology, SoyKB, and SRA-search). Table~\ref{tab:extended_baselines} reports ADARE core-metric wins and mean core-quality gain against each baseline.
+
+\begin{table}[H]
+\caption{Extended Baseline Comparison (core metrics: HV, IGD, spacing, epsilon, coverage)}
+\label{tab:extended_baselines}
+\centering
+\scriptsize
+\begin{tabular}{@{}l l c c@{}}
+\toprule
+Scale & Baseline & ADARE core wins & Mean core gain (\%) \\
+\midrule
+Small & NSGA-III & 13/25 & 21.73 \\
+Small & NSGA-II & 17/25 & 135.87 \\
+Small & MOEA/D & 20/25 & 77.59 \\
+Small & QL-NSGA-III & 18/25 & 12.04 \\
+\midrule
+1000 tasks & NSGA-III & 12/20 & 3.06 \\
+1000 tasks & NSGA-II & 14/20 & 40.87 \\
+1000 tasks & MOEA/D & 16/20 & 23.57 \\
+1000 tasks & QL-NSGA-III & 10/20 & -3.05 \\
+\midrule
+3000 tasks & NSGA-III & 18/25 & 19.54 \\
+3000 tasks & NSGA-II & 22/25 & 149.19 \\
+3000 tasks & MOEA/D & 19/25 & 35.08 \\
+3000 tasks & QL-NSGA-III & 16/25 & 0.95 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{extended_core_gain_by_scale.png}
+\caption{Mean ADARE core-quality gain across scales and extended baselines.}
+\label{fig:extended_gain}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{extended_core_win_rate_by_scale.png}
+\caption{ADARE core-metric win rate across scales and extended baselines.}
+\label{fig:extended_wins}
+\end{figure}
+
+The extended results are more conservative than the original NSGA-III-only story. ADARE remains stronger than NSGA-II and MOEA/D and remains favorable against NSGA-III at all three scales. QL-NSGA-III is the strongest additional baseline: ADARE remains positive on small and 3000-task workflows, while the 1000-task suite is nearly tied and slightly negative in mean core gain. This shows that adaptive operator selection is a real competitive family; ADARE's contribution is the Pareto-contextual reward and workflow-specific control design rather than the mere presence of learning.
+
 \subsection{Ablation Protocol (V1--V5) and Artifact-Ready Variant Definition}
 To isolate module effects in our runs, we keep the same paired-run fairness constraints and grow the ablation step by step. We start with \textbf{V1} (NSGA-III baseline), then add UCB crossover control in \textbf{V2}, density-aware mutation in \textbf{V3}, partial archive injection/final-pool guidance in \textbf{V4}, and full ADARE in \textbf{V5}.
 
@@ -577,12 +625,12 @@ The revised controller directly addresses the reward-scale concern raised by the
 
 The implementation now exports controller traces containing generation, context, operator, reward, diversity, and stagnation. These traces make it possible to build the heatmap requested in the detailed review and to verify whether ADARE actually changes behavior across early, middle, late, low-diversity, and stagnation contexts.
 
-The largest remaining limitation is external validity. The added 1000-task stress test strengthens the scalability evidence, but it uses only 2 paired runs and a short 15-generation budget. It therefore does not replace a full large-scale statistical study with 20 paired runs, longer budgets, non-scientific workflows, and direct comparisons with recent learning-assisted MOEAs. We therefore treat the current evidence as strong for controlled workflow scheduling and promising for 1000-task scale, not as a universal scalability claim.
+The largest remaining limitation is external validity and repetition count at scale. The added 1000-task and WfCommons 3000-task stress tests strengthen the scalability evidence, and the extended baseline suite now includes NSGA-II, MOEA/D, and a Q-learning-assisted NSGA-III baseline. However, these large runs use short budgets and small repetition counts. They therefore do not replace a full large-scale statistical study with 20 paired runs, longer budgets, and exact public implementations of OVEA, QLMOEA/D-AWA, or MRL-MOEA when such artifacts are available. We therefore treat the current evidence as strong for controlled workflow scheduling and promising for 1000--3000 task scale, not as a universal scalability claim.
 \section{Conclusion}
 % Discussion refinement
 We reframed ADARE as a Pareto-contextual online control layer for many-objective workflow scheduling rather than as a simple scheduler variant. This framing is technically useful because it explains why operator-level learning is central to the method, while the evolutionary backbone can remain largely unchanged.
 
-Under a fairness-controlled protocol (same initialization, same budget, same evaluator) and a stronger statistical setup (20 paired runs per benchmark), ADARE improves overall many-objective search quality and runtime against NSGA-III on three heterogeneous workflow instances. In our runs, gains are strongest in HV, coverage, spacing, and objective extremes, and CyberShake shows the clearest combined benefit. Runtime also improves on all three benchmarks in the final protocol, although the Epigenomics runtime effect remains smaller than its quality effects. The added 1000-task stress test further shows favorable direction on 22/24 tracked comparisons, while Sipht\_1000 remains a useful hard case. Measured control overhead stays near 5\% on average, preserving practical usability on a local workstation.
+Under a fairness-controlled protocol (same initialization, same budget, same evaluator) and a stronger statistical setup (20 paired runs per benchmark), ADARE improves overall many-objective search quality and runtime against NSGA-III on three heterogeneous workflow instances. In our runs, gains are strongest in HV, coverage, spacing, and objective extremes, and CyberShake shows the clearest combined benefit. Runtime also improves on all three benchmarks in the final protocol, although the Epigenomics runtime effect remains smaller than its quality effects. The added 1000-task and 3000-task stress tests further show favorable scaling behavior, and the extended baseline suite confirms that ADARE remains competitive beyond a single NSGA-III comparison. Measured control overhead stays near 5\% on average, preserving practical usability on a local workstation.
 
 For the ECML PKDD framing, the main takeaway is that workflow scheduling in heterogeneous distributed systems benefits from treating evolutionary operator choice as a \emph{contextual online learning control problem}. Future work will extend this evaluation to larger workflow instances, add the 500-generation convergence stress test, validate the controller reward against sampled HV contribution, finalize direct NSGA-II and MOEA/D implementations, and add direct comparisons with recent learning-based state-of-the-art methods such as OVEA and QLMOEA/D-AWA under the same evaluator.
 \enlargethispage{3\baselineskip}

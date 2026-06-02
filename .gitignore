@@ -16,6 +16,8 @@ env/
 
 # Runtime and profiling artifacts
 output/
+data/history/
+CMT/
 saves/
 *.prof
 *.lprof
