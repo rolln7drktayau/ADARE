@@ -27,21 +27,22 @@ def plot_pareto_projections(
     _ensure_parent(output_path)
     pairs = [(0, 1), (0, 2), (0, 3), (2, 3)]
 
-    fig, axes = plt.subplots(2, 2, figsize=(12, 9))
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     axes = axes.ravel()
 
     for ax, (i, j) in zip(axes, pairs):
         for label, front in fronts.items():
-            ax.scatter(front[:, i], front[:, j], s=18, alpha=0.7, label=label)
-        ax.set_xlabel(objective_names[i])
-        ax.set_ylabel(objective_names[j])
+            ax.scatter(front[:, i], front[:, j], s=24, alpha=0.72, label=label)
+        ax.set_xlabel(objective_names[i], fontsize=12)
+        ax.set_ylabel(objective_names[j], fontsize=12)
+        ax.tick_params(axis="both", labelsize=10)
         ax.grid(alpha=0.3, linestyle="--")
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=max(1, len(fronts)))
-    fig.suptitle(title, fontsize=13)
-    fig.tight_layout(rect=[0, 0, 1, 0.95])
-    fig.savefig(output_path, dpi=220)
+    fig.legend(handles, labels, loc="upper center", ncol=max(1, len(fronts)), fontsize=12)
+    fig.suptitle(title, fontsize=15)
+    fig.tight_layout(rect=[0, 0, 1, 0.94])
+    fig.savefig(output_path, dpi=300)
     plt.close(fig)
 
 
@@ -53,7 +54,7 @@ def plot_convergence(
 ) -> None:
     """Save convergence curves with mean and standard-deviation bands."""
     _ensure_parent(output_path)
-    fig, axes = plt.subplots(2, 2, figsize=(12, 9))
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     axes = axes.ravel()
 
     for obj_idx, obj_name in enumerate(objective_names):
@@ -63,19 +64,20 @@ def plot_convergence(
             mean_curve = np.mean(data[:, :, obj_idx], axis=0)
             std_curve = np.std(data[:, :, obj_idx], axis=0)
             x = np.arange(mean_curve.shape[0])
-            ax.plot(x, mean_curve, label=label)
+            ax.plot(x, mean_curve, label=label, linewidth=2.0)
             ax.fill_between(x, mean_curve - std_curve, mean_curve + std_curve, alpha=0.2)
 
-        ax.set_title(obj_name)
-        ax.set_xlabel("Generation")
-        ax.set_ylabel("Best value")
+        ax.set_title(obj_name, fontsize=13)
+        ax.set_xlabel("Generation", fontsize=12)
+        ax.set_ylabel("Best value", fontsize=12)
+        ax.tick_params(axis="both", labelsize=10)
         ax.grid(alpha=0.3, linestyle="--")
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=max(1, len(histories)))
-    fig.suptitle(title, fontsize=13)
-    fig.tight_layout(rect=[0, 0, 1, 0.95])
-    fig.savefig(output_path, dpi=220)
+    fig.legend(handles, labels, loc="upper center", ncol=max(1, len(histories)), fontsize=12)
+    fig.suptitle(title, fontsize=15)
+    fig.tight_layout(rect=[0, 0, 1, 0.94])
+    fig.savefig(output_path, dpi=300)
     plt.close(fig)
 
 
@@ -90,9 +92,10 @@ def plot_metric_boxplots(
     _ensure_parent(output_path)
     fig, ax = plt.subplots(figsize=(6, 5))
     ax.boxplot([adare_values, nsga_values], labels=["ADARE", "NSGA-III"], showmeans=True)
-    ax.set_title(title)
-    ax.set_ylabel(metric_name)
+    ax.set_title(title, fontsize=13)
+    ax.set_ylabel(metric_name, fontsize=12)
+    ax.tick_params(axis="both", labelsize=10)
     ax.grid(axis="y", alpha=0.3, linestyle="--")
     fig.tight_layout()
-    fig.savefig(output_path, dpi=220)
+    fig.savefig(output_path, dpi=300)
     plt.close(fig)

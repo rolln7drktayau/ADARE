@@ -38,38 +38,41 @@ class NSGA3Algorithm(BaseAlgorithm):
         """Execute one NSGA-III optimization run and return full artifacts."""
         self.reset_global_rng()
         start_time = time.perf_counter()
-        population = self.create_population()
-        history = [self.best_objectives(population)]
+        try:
+            population = self.create_population()
+            history = [self.best_objectives(population)]
 
-        for _ in range(self.generations):
-            # Offspring are sampled from the current population with replacement.
-            offspring = [
-                self.toolbox.clone(population[self.random.randrange(len(population))])
-                for _ in range(len(population))
-            ]
+            for _ in range(self.generations):
+                # Offspring are sampled from the current population with replacement.
+                offspring = [
+                    self.toolbox.clone(population[self.random.randrange(len(population))])
+                    for _ in range(len(population))
+                ]
 
-            # Apply crossover pairwise.
-            for child1, child2 in pairwise(offspring):
-                if self.random.random() < self.crossover_probability:
-                    self.toolbox.mate(child1, child2)
-                    del child1.fitness.values
-                    del child2.fitness.values
+                # Apply crossover pairwise.
+                for child1, child2 in pairwise(offspring):
+                    if self.random.random() < self.crossover_probability:
+                        self.toolbox.mate(child1, child2)
+                        del child1.fitness.values
+                        del child2.fitness.values
 
-            # Apply mutation independently.
-            for mutant in offspring:
-                if self.random.random() < self.mutation_probability:
-                    self.toolbox.mutate(mutant)
-                    del mutant.fitness.values
+                # Apply mutation independently.
+                for mutant in offspring:
+                    if self.random.random() < self.mutation_probability:
+                        self.toolbox.mutate(mutant)
+                        del mutant.fitness.values
 
-            self.evaluate_population(offspring)
-            combined = population + offspring
-            population = tools.selNSGA3(combined, self.population_size, self.reference_points)
-            history.append(self.best_objectives(population))
+                self.evaluate_population(offspring)
+                combined = population + offspring
+                population = tools.selNSGA3(combined, self.population_size, self.reference_points)
+                history.append(self.best_objectives(population))
 
-        elapsed = time.perf_counter() - start_time
-        return {
-            "population": population,
-            "objective_population": population,
-            "history": np.asarray(history, dtype=float),
-            "time": float(elapsed),
-        }
+            elapsed = time.perf_counter() - start_time
+            return {
+                "population": population,
+                "objective_population": population,
+                "history": np.asarray(history, dtype=float),
+                "time": float(elapsed),
+            }
+        finally:
+            self.shutdown()

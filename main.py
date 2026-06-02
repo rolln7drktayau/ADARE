@@ -186,6 +186,7 @@ def run_benchmark(
     histories: Dict[str, List[np.ndarray]] = {"ADARE": [], "NSGA-III": []}
     times: Dict[str, List[float]] = {"ADARE": [], "NSGA-III": []}
     objective_best: Dict[str, List[np.ndarray]] = {"ADARE": [], "NSGA-III": []}
+    controller_trace_rows: List[Dict[str, Any]] = []
 
     nsga_shared = dict(shared_config)
     adare_shared = dict(shared_config)
@@ -245,6 +246,10 @@ def run_benchmark(
         times["ADARE"].append(float(adare_result["time"]))
         objective_best["NSGA-III"].append(np.min(nsga_objective_pool, axis=0))
         objective_best["ADARE"].append(np.min(adare_objective_pool, axis=0))
+        for trace_row in adare_result.get("controller_trace", []):
+            row = {"benchmark": benchmark, "run": run_idx + 1}
+            row.update(trace_row)
+            controller_trace_rows.append(row)
 
     reference_front = filter_non_dominated(np.vstack(fronts["ADARE"] + fronts["NSGA-III"]))
 
@@ -300,6 +305,28 @@ def run_benchmark(
     summary_csv = dirs["reports"] / f"{benchmark}_summary_metrics.csv"
     write_csv(run_csv, fieldnames=list(run_rows[0].keys()), rows=run_rows)
     write_csv(summary_csv, fieldnames=list(summary_rows[0].keys()), rows=summary_rows)
+    if controller_trace_rows:
+        trace_csv = dirs["reports"] / f"{benchmark}_adare_controller_trace.csv"
+        write_csv(trace_csv, fieldnames=list(controller_trace_rows[0].keys()), rows=controller_trace_rows)
+
+        aggregate: Dict[tuple[str, str], Dict[str, float]] = {}
+        for row in controller_trace_rows:
+            key = (str(row["context"]), str(row["operator"]))
+            stats = aggregate.setdefault(key, {"uses": 0.0, "reward_sum": 0.0})
+            stats["uses"] += 1.0
+            stats["reward_sum"] += float(row["reward"])
+        aggregate_rows = [
+            {
+                "benchmark": benchmark,
+                "context": context,
+                "operator": operator,
+                "uses": int(stats["uses"]),
+                "mean_reward": stats["reward_sum"] / max(1.0, stats["uses"]),
+            }
+            for (context, operator), stats in sorted(aggregate.items())
+        ]
+        aggregate_csv = dirs["reports"] / f"{benchmark}_adare_controller_summary.csv"
+        write_csv(aggregate_csv, fieldnames=list(aggregate_rows[0].keys()), rows=aggregate_rows)
 
     report_txt = dirs["reports"] / f"{benchmark}_comparison_report.txt"
     with report_txt.open("w", encoding="utf-8") as handle:

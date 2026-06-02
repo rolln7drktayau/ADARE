@@ -11,10 +11,49 @@ This module centralizes:
 import copy
 import random
 from abc import ABC, abstractmethod
+from concurrent.futures import ProcessPoolExecutor
 from typing import Any, Dict, List, Sequence, Tuple
 
 import numpy as np
 from deap import base, creator, tools  # type: ignore
+
+
+_BASE_WORKER_TASKS: list[dict[str, Any]] | None = None
+_BASE_WORKER_NODES: list[dict[str, Any]] | None = None
+_BASE_WORKER_ORDER: list[int] | None = None
+_BASE_WORKER_OBJECTIVES: list[str] | None = None
+
+
+def _base_worker_init(
+    tasks: list[dict[str, Any]],
+    nodes: list[dict[str, Any]],
+    order: list[int],
+    objective_names: list[str],
+) -> None:
+    """Initialize immutable evaluator context inside a worker process."""
+    global _BASE_WORKER_TASKS, _BASE_WORKER_NODES, _BASE_WORKER_ORDER, _BASE_WORKER_OBJECTIVES
+    _BASE_WORKER_TASKS = tasks
+    _BASE_WORKER_NODES = nodes
+    _BASE_WORKER_ORDER = order
+    _BASE_WORKER_OBJECTIVES = objective_names
+
+
+def _base_worker_evaluate(individual: list[int]) -> tuple[float, ...]:
+    """Evaluate one individual in a worker process using preloaded context."""
+    if (
+        _BASE_WORKER_TASKS is None
+        or _BASE_WORKER_NODES is None
+        or _BASE_WORKER_ORDER is None
+        or _BASE_WORKER_OBJECTIVES is None
+    ):
+        raise RuntimeError("Base worker context is not initialized.")
+    return evaluate_schedule(
+        individual=individual,
+        tasks=_BASE_WORKER_TASKS,
+        nodes=_BASE_WORKER_NODES,
+        topological_order=_BASE_WORKER_ORDER,
+        objective_names=_BASE_WORKER_OBJECTIVES,
+    )
 
 
 def _ensure_deap_types(num_objectives: int) -> type:
@@ -135,6 +174,11 @@ class BaseAlgorithm(ABC):
         self.gene_mutation_probability = float(
             shared_config.get("gene_mutation_probability", 1.0 / max(1, len(self.tasks)))
         )
+        self.parallel_workers = max(1, int(algorithm_config.get("parallel_workers", 1)))
+        self.parallel_threshold = max(1, int(algorithm_config.get("parallel_threshold", 24)))
+        self.use_fitness_cache = bool(algorithm_config.get("use_fitness_cache", True))
+        self.fitness_cache: Dict[tuple[int, ...], tuple[float, ...]] = {}
+        self._pool: ProcessPoolExecutor | None = None
 
         self.num_tasks = len(self.tasks)
         self.num_nodes = len(self.nodes)
@@ -206,9 +250,57 @@ class BaseAlgorithm(ABC):
         invalid = [ind for ind in population if not ind.fitness.valid]
         if not invalid:
             return
-        fitnesses = [self.toolbox.evaluate(ind) for ind in invalid]
-        for ind, fit in zip(invalid, fitnesses):
-            ind.fitness.values = fit
+
+        if self.use_fitness_cache:
+            pending_by_key: Dict[tuple[int, ...], list[Any]] = {}
+            for ind in invalid:
+                key = tuple(int(gene) for gene in ind)
+                fit = self.fitness_cache.get(key)
+                if fit is not None:
+                    ind.fitness.values = fit
+                    continue
+                pending_by_key.setdefault(key, []).append(ind)
+
+            if not pending_by_key:
+                return
+            keys_to_eval = list(pending_by_key.keys())
+            vectors_to_eval = [list(key) for key in keys_to_eval]
+        else:
+            pending_by_key = {}
+            keys_to_eval = []
+            vectors_to_eval = [list(ind) for ind in invalid]
+
+        if self.parallel_workers > 1 and len(vectors_to_eval) >= self.parallel_threshold:
+            if self._pool is None:
+                self._pool = ProcessPoolExecutor(
+                    max_workers=self.parallel_workers,
+                    initializer=_base_worker_init,
+                    initargs=(
+                        list(self.tasks),
+                        list(self.nodes),
+                        list(self.topological_order),
+                        list(self.objective_names),
+                    ),
+                )
+            fitnesses = list(self._pool.map(_base_worker_evaluate, vectors_to_eval))
+        else:
+            fitnesses = [self.toolbox.evaluate(vector) for vector in vectors_to_eval]
+
+        if self.use_fitness_cache:
+            for key, fit in zip(keys_to_eval, fitnesses):
+                fit_t = tuple(float(v) for v in fit)
+                self.fitness_cache[key] = fit_t
+                for ind in pending_by_key[key]:
+                    ind.fitness.values = fit_t
+        else:
+            for ind, fit in zip(invalid, fitnesses):
+                ind.fitness.values = tuple(float(v) for v in fit)
+
+    def shutdown(self) -> None:
+        """Release optional parallel evaluator resources."""
+        if self._pool is not None:
+            self._pool.shutdown(wait=True)
+            self._pool = None
 
     def best_objectives(self, population: Sequence[Any]) -> np.ndarray:
         """Return the per-objective best value in the given population."""

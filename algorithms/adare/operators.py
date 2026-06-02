@@ -71,7 +71,7 @@ def scalar_fitness(values: Sequence[float]) -> float:
 
 
 class AdaptiveOperatorController:
-    """Q-learning style controller that selects crossover operators adaptively."""
+    """Contextual UCB controller for search-phase-aware crossover selection."""
 
     def __init__(
         self,
@@ -84,14 +84,17 @@ class AdaptiveOperatorController:
         self.exploration_end = float(exploration_end)
         self.alpha = float(alpha)
 
+        self.operator_names = ["one_point", "two_point", "uniform_0_5", "uniform_0_8"]
         self.operators: list[Callable[[list[int], list[int], random.Random], Tuple[list[int], list[int]]]] = [
             _cx_one_point,
             _cx_two_point,
             lambda a, b, r: _cx_uniform(a, b, r, indpb=0.5),
             lambda a, b, r: _cx_uniform(a, b, r, indpb=0.8),
         ]
-        self.q_values = np.ones(len(self.operators), dtype=float)
-        self.usage_count = np.zeros(len(self.operators), dtype=int)
+        self.num_contexts = 12
+        self.q_values = np.zeros((self.num_contexts, len(self.operators)), dtype=float)
+        self.usage_count = np.zeros((self.num_contexts, len(self.operators)), dtype=int)
+        self.context_usage = np.zeros(self.num_contexts, dtype=int)
 
     def _epsilon(self, generation: int, max_generations: int) -> float:
         """Linearly anneal exploration from start to end over generations."""
@@ -100,27 +103,67 @@ class AdaptiveOperatorController:
             self.exploration_start + (self.exploration_end - self.exploration_start) * progress
         )
 
-    def select_operator(self, generation: int, max_generations: int, rng: random.Random) -> int:
-        """Pick an operator with epsilon-greedy + UCB exploration bonus."""
+    def context_id(self, progress: float, diversity: float, stagnation_ratio: float) -> int:
+        """Discretize the search state into a compact context id."""
+        if progress < 0.34:
+            phase = 0
+        elif progress < 0.67:
+            phase = 1
+        else:
+            phase = 2
+        diversity_bin = 0 if diversity < 0.45 else 1
+        stagnation_bin = 1 if stagnation_ratio >= 0.70 else 0
+        return int(phase * 4 + diversity_bin * 2 + stagnation_bin)
+
+    def context_label(self, context_id: int) -> str:
+        """Return a compact human-readable label for a context id."""
+        phase_names = ("early", "middle", "late")
+        phase = int(context_id) // 4
+        rem = int(context_id) % 4
+        diversity_label = "low_div" if rem < 2 else "high_div"
+        stagnation_label = "stagnant" if rem % 2 else "moving"
+        return f"{phase_names[phase]}:{diversity_label}:{stagnation_label}"
+
+    def select_operator(
+        self,
+        context_id: int,
+        generation: int,
+        max_generations: int,
+        rng: random.Random,
+    ) -> int:
+        """Pick an operator with contextual epsilon-greedy + UCB exploration."""
         epsilon = self._epsilon(generation, max_generations)
+        context_id = int(np.clip(context_id, 0, self.num_contexts - 1))
         if rng.random() < epsilon:
             op_idx = rng.randrange(len(self.operators))
         else:
-            total = float(np.sum(self.usage_count) + 1)
-            bonus = np.sqrt(2.0 * np.log(total + 1.0) / (self.usage_count + 1))
-            op_idx = int(np.argmax(self.q_values + bonus))
-        self.usage_count[op_idx] += 1
+            total = float(self.context_usage[context_id] + 1)
+            counts = self.usage_count[context_id]
+            bonus = np.sqrt(2.0 * np.log(total + 1.0) / (counts + 1))
+            op_idx = int(np.argmax(self.q_values[context_id] + bonus))
+        self.usage_count[context_id, op_idx] += 1
+        self.context_usage[context_id] += 1
         return op_idx
 
     def apply(self, operator_index: int, ind1: list[int], ind2: list[int], rng: random.Random) -> None:
         """Apply the selected crossover operator in place."""
         self.operators[operator_index](ind1, ind2, rng)
 
-    def update(self, operator_index: int, reward: float) -> None:
-        """Update operator quality estimate with exponential smoothing."""
-        self.q_values[operator_index] = (
-            (1.0 - self.alpha) * self.q_values[operator_index] + self.alpha * float(reward)
+    def update(self, context_id: int, operator_index: int, reward: float) -> None:
+        """Update context-specific operator value with exponential smoothing."""
+        context_id = int(np.clip(context_id, 0, self.num_contexts - 1))
+        self.q_values[context_id, operator_index] = (
+            (1.0 - self.alpha) * self.q_values[context_id, operator_index] + self.alpha * float(reward)
         )
+
+    def snapshot(self) -> dict[str, object]:
+        """Return serializable controller state for interpretation and reporting."""
+        return {
+            "operator_names": list(self.operator_names),
+            "context_labels": [self.context_label(idx) for idx in range(self.num_contexts)],
+            "q_values": self.q_values.tolist(),
+            "usage_count": self.usage_count.tolist(),
+        }
 
 
 def build_task_node_rankings(
@@ -168,6 +211,7 @@ def adaptive_mutation(
     num_nodes: int,
     heuristic_mutation_rate: float,
     base_gene_mutation_probability: float,
+    max_mutation_budget: int,
 ) -> tuple[list[int]]:
     """Perform diversity-aware and progress-aware adaptive mutation."""
     progress = generation / max(1, max_generations - 1)
@@ -175,6 +219,8 @@ def adaptive_mutation(
         1,
         int((0.01 + (1.0 - progress) * 0.08 + (1.0 - diversity) * 0.10) * len(individual)),
     )
+    if max_mutation_budget > 0:
+        dynamic_budget = min(dynamic_budget, max(1, int(max_mutation_budget)))
 
     for _ in range(dynamic_budget):
         position = rng.randrange(len(individual))

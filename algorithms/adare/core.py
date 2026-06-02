@@ -67,6 +67,7 @@ class AdareAlgorithm(BaseAlgorithm):
             alpha=float(self.algorithm_config.get("q_learning_alpha", 0.2)),
         )
         self.heuristic_mutation_rate = float(self.algorithm_config.get("heuristic_mutation_rate", 0.7))
+        self.max_mutation_budget = max(1, int(self.algorithm_config.get("max_mutation_budget", 48)))
         self.use_adaptive_mutation = bool(self.algorithm_config.get("use_adaptive_mutation", True))
         self.archive_size = int(self.algorithm_config.get("archive_size", self.population_size))
         self.enable_archive = bool(self.algorithm_config.get("enable_archive", True))
@@ -813,6 +814,61 @@ class AdareAlgorithm(BaseAlgorithm):
             population[replace_idx] = self.toolbox.clone(elite)
             present.add(key)
 
+    def _objective_scales(self, population: List[Any]) -> np.ndarray:
+        """Estimate objective scales from the current population for reward normalization."""
+        values = np.asarray([ind.fitness.values for ind in population], dtype=float)
+        if values.size == 0:
+            return np.ones(self.num_objectives, dtype=float)
+        spans = np.nanmax(values, axis=0) - np.nanmin(values, axis=0)
+        medians = np.maximum(np.abs(np.nanmedian(values, axis=0)), 1.0)
+        return np.where(spans > 1e-12, spans, medians)
+
+    def _operator_reward(
+        self,
+        parent_fitness: Sequence[Sequence[float]],
+        child_fitness: Sequence[Sequence[float]],
+        parent_genotypes: Sequence[Sequence[int]],
+        child_genotypes: Sequence[Sequence[int]],
+        objective_scales: np.ndarray,
+    ) -> float:
+        """Pareto-normalized reward used by the contextual operator controller."""
+        parents = np.asarray(parent_fitness, dtype=float)
+        children = np.asarray(child_fitness, dtype=float)
+        scales = np.maximum(np.asarray(objective_scales, dtype=float), 1e-12)
+
+        best_parent = np.min(parents, axis=0)
+        best_child = np.min(children, axis=0)
+        improvement = (best_parent - best_child) / scales
+        mean_improvement = float(np.mean(np.clip(improvement, -1.0, 1.0)))
+        balanced_improvement = float(np.mean(improvement > 1e-12))
+
+        dominance_hits = 0
+        dominated_hits = 0
+        for child in children:
+            if any(dominates(child, parent) for parent in parents):
+                dominance_hits += 1
+            if all(dominates(parent, child) for parent in parents):
+                dominated_hits += 1
+        dominance_score = (dominance_hits - dominated_hits) / max(1, len(children))
+
+        novelty = 0.0
+        comparisons = 0
+        for child in child_genotypes:
+            child_arr = np.asarray(child, dtype=int)
+            for parent in parent_genotypes:
+                parent_arr = np.asarray(parent, dtype=int)
+                novelty += float(np.mean(child_arr != parent_arr))
+                comparisons += 1
+        novelty_score = novelty / max(1, comparisons)
+
+        reward = (
+            0.45 * dominance_score
+            + 0.35 * mean_improvement
+            + 0.15 * balanced_improvement
+            + 0.05 * novelty_score
+        )
+        return float(np.clip(reward, -1.0, 1.0))
+
     def run(self) -> Dict[str, Any]:
         """Execute the full ADARE loop and return final populations and history."""
         self.reset_global_rng()
@@ -830,10 +886,15 @@ class AdareAlgorithm(BaseAlgorithm):
             best_scalar = min(scalar_fitness(ind.fitness.values) for ind in population)
             stagnation = 0
             rescue_left = 0
+            controller_trace: list[dict[str, float | int | str]] = []
 
             for gen in range(self.generations):
                 if gen % self.diversity_refresh_period == 0:
                     diversity = self._population_diversity(population)
+                progress = gen / max(1, self.generations - 1)
+                stagnation_ratio = min(1.0, stagnation / self.stagnation_patience)
+                context_id = self.controller.context_id(progress, diversity, stagnation_ratio)
+                objective_scales = self._objective_scales(population)
 
                 if rescue_left > 0:
                     offspring_count = self.population_size
@@ -851,22 +912,39 @@ class AdareAlgorithm(BaseAlgorithm):
                     self.toolbox.clone(population[self.random.randrange(len(population))])
                     for _ in range(offspring_count)
                 ]
-                crossover_logs: list[tuple[int, float, Any, Any]] = []
+                crossover_logs: list[
+                    tuple[
+                        int,
+                        int,
+                        tuple[tuple[float, ...], tuple[float, ...]],
+                        tuple[tuple[int, ...], tuple[int, ...]],
+                        Any,
+                        Any,
+                    ]
+                ] = []
 
                 for idx in range(0, len(offspring) - 1, 2):
                     child1, child2 = offspring[idx], offspring[idx + 1]
                     if self.random.random() >= cxpb:
                         continue
 
-                    operator_idx = self.controller.select_operator(gen, self.generations, self.random)
-                    parent_score = min(
-                        scalar_fitness(child1.fitness.values),
-                        scalar_fitness(child2.fitness.values),
+                    operator_idx = self.controller.select_operator(
+                        context_id,
+                        gen,
+                        self.generations,
+                        self.random,
                     )
+                    parent_fitness = (
+                        tuple(float(v) for v in child1.fitness.values),
+                        tuple(float(v) for v in child2.fitness.values),
+                    )
+                    parent_genotypes = (genotype_key(child1), genotype_key(child2))
                     self.controller.apply(operator_idx, child1, child2, self.random)
                     del child1.fitness.values
                     del child2.fitness.values
-                    crossover_logs.append((operator_idx, parent_score, child1, child2))
+                    crossover_logs.append(
+                        (context_id, operator_idx, parent_fitness, parent_genotypes, child1, child2)
+                    )
 
                 for mutant in offspring:
                     mutated = False
@@ -884,6 +962,7 @@ class AdareAlgorithm(BaseAlgorithm):
                                 num_nodes=self.num_nodes,
                                 heuristic_mutation_rate=self.heuristic_mutation_rate,
                                 base_gene_mutation_probability=self.gene_mutation_probability,
+                                max_mutation_budget=self.max_mutation_budget,
                             )
                         else:
                             self._baseline_mutation(mutant)
@@ -922,13 +1001,30 @@ class AdareAlgorithm(BaseAlgorithm):
                 self._inject_energy_exploration(offspring)
                 self.evaluate_population(offspring)
 
-                for operator_idx, parent_score, child1, child2 in crossover_logs:
-                    child_score = min(
-                        scalar_fitness(child1.fitness.values),
-                        scalar_fitness(child2.fitness.values),
+                for log_context_id, operator_idx, parent_fitness, parent_genotypes, child1, child2 in crossover_logs:
+                    child_fitness = (
+                        tuple(float(v) for v in child1.fitness.values),
+                        tuple(float(v) for v in child2.fitness.values),
                     )
-                    reward = parent_score - child_score
-                    self.controller.update(operator_idx, reward)
+                    reward = self._operator_reward(
+                        parent_fitness=parent_fitness,
+                        child_fitness=child_fitness,
+                        parent_genotypes=parent_genotypes,
+                        child_genotypes=(genotype_key(child1), genotype_key(child2)),
+                        objective_scales=objective_scales,
+                    )
+                    self.controller.update(log_context_id, operator_idx, reward)
+                    controller_trace.append(
+                        {
+                            "generation": gen,
+                            "context_id": log_context_id,
+                            "context": self.controller.context_label(log_context_id),
+                            "operator": self.controller.operator_names[operator_idx],
+                            "reward": reward,
+                            "diversity": float(diversity),
+                            "stagnation": int(stagnation),
+                        }
+                    )
 
                 combined = population + offspring
                 population = tools.selNSGA3(combined, self.population_size, self.reference_points)
@@ -992,6 +1088,8 @@ class AdareAlgorithm(BaseAlgorithm):
                 "objective_population": objective_population,
                 "history": np.asarray(history, dtype=float),
                 "time": float(elapsed),
+                "controller": self.controller.snapshot(),
+                "controller_trace": controller_trace,
             }
         finally:
             if self._pool is not None:
