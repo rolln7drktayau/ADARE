@@ -1,26 +1,36 @@
 # Rapid startup (Make-based)
 # ------------------------------------
-# 1) Install Python dependencies into the virtual environment
-make setup
+# 1) Install/prep environment, then open the menu
+make
 
-# 2) Run the default experiment configured in main.py + config files
+# 2) If dependencies are already ready, open only the menu
+make menu
+
+# 3) Run the default experiment configured in scripts/main.py + config files
 make run
 
-# 3) Run one specific benchmark from the Makefile pattern rule
+# 4) Run ADARE only, without a baseline comparison
+make adare
+make adare-1000
+
+# 5) Open the evolution dashboard: generation, convergence, metrics, Pareto view
+make live
+
+# 6) Run one specific benchmark from the Makefile pattern rule
 #    Example targets: Montage_25, CyberShake_30, Epigenomics_24
 make run-Montage_25
 make run-CyberShake_30
 make run-Epigenomics_24
 
-# 4) Optional: clean generated outputs and caches
+# 7) Optional: clean generated outputs and caches
 make clean
 
-# 5) Optional: formatting and linting
+# 8) Optional: formatting and linting
 make format
 make lint
 
-# 6) List available commands
+# 9) List available commands
 make help
 
-# 7) Test the syntax hardening
-python -m compileall -q
+# 10) Test syntax hardening for runnable scripts
+make prepare

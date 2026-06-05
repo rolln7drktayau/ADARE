@@ -3,9 +3,14 @@ from __future__ import annotations
 """Standalone ADARE runner for executing the algorithm without baselines."""
 
 import argparse
+import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Sequence
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import numpy as np
 
@@ -180,7 +185,7 @@ def run_adare_benchmark(
 
 def main() -> int:
     args = parse_args()
-    root = Path(__file__).resolve().parent
+    root = ROOT
     config_dir = root / "config"
     main_config = load_json(config_dir / "main_config.json")
     adare_config = load_json(config_dir / "adare_config.json")

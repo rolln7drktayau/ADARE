@@ -53,7 +53,7 @@ Ensure the following files exist in the `data` directory:
 ### 4. Run the Comparison
 
 ```bash
-python ADARE/adare_vs_nsga3.py
+python ADARE/scripts/adare_vs_nsga3.py
 ```
 
 ## Troubleshooting

@@ -882,6 +882,9 @@ class AdareAlgorithm(BaseAlgorithm):
                 else:
                     self._update_archive(population)
             history = [self.best_objectives(population)]
+            generation_snapshots: list[np.ndarray] = []
+            if bool(self.algorithm_config.get("capture_generation_snapshots", False)):
+                generation_snapshots.append(self.population_to_array(population))
             diversity = self._population_diversity(population)
             best_scalar = min(scalar_fitness(ind.fitness.values) for ind in population)
             stagnation = 0
@@ -1042,6 +1045,8 @@ class AdareAlgorithm(BaseAlgorithm):
                     if self.rescue_generations > 0 and stagnation >= self.stagnation_patience and rescue_left == 0:
                         rescue_left = self.rescue_generations
                 history.append(self.best_objectives(population))
+                if bool(self.algorithm_config.get("capture_generation_snapshots", False)):
+                    generation_snapshots.append(self.population_to_array(population))
 
             final_population = list(population)
             present_keys = {genotype_key(ind) for ind in final_population}
@@ -1090,6 +1095,7 @@ class AdareAlgorithm(BaseAlgorithm):
                 "time": float(elapsed),
                 "controller": self.controller.snapshot(),
                 "controller_trace": controller_trace,
+                "generation_snapshots": generation_snapshots,
             }
         finally:
             if self._pool is not None:

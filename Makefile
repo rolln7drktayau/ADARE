@@ -21,9 +21,15 @@ BUILD_DIR = $(DATA_DIR)/build
 COOKIES_DIR = har_and_cookies
 
 # Main commands
-.PHONY: all menu run adare adare-1000 smoke clean build setup format lint help main20 extended-small extended-1000-r20 extended-3000-r20 ablation paper
+.PHONY: all start prepare menu run adare adare-1000 live smoke clean build setup format lint help main20 extended-small extended-1000-r20 extended-3000-r20 ablation paper
 
-all: menu
+all: start
+
+start: setup prepare menu
+
+prepare:
+	$(PYTHON) -c "from pathlib import Path; [Path(p).mkdir(parents=True, exist_ok=True) for p in ('output/plots','output/reports','results/extended','Figures','data/history')]"
+	$(PYTHON) -m py_compile scripts/main.py scripts/run_adare.py scripts/run_extended_comparison.py scripts/run_ablation_v1_v5.py scripts/live_view.py scripts/make_menu.py scripts/adare_vs_nsga3.py
 
 menu:
 	$(PYTHON) scripts/make_menu.py
@@ -31,31 +37,34 @@ menu:
 # Default run with sample data
 run:
 	@mkdir -p $(OUTPUT_DIR)/plots $(OUTPUT_DIR)/reports
-	$(PYTHON) main.py
+	$(PYTHON) scripts/main.py
 
 adare:
-	$(PYTHON) run_adare.py --benchmarks Montage_25 --runs 1 --generations 70 --population-size 100
+	$(PYTHON) scripts/run_adare.py --benchmarks Montage_25 --runs 1 --generations 70 --population-size 100
 
 adare-1000:
-	$(PYTHON) run_adare.py --benchmarks CyberShake_1000 --runs 1 --generations 15 --population-size 80
+	$(PYTHON) scripts/run_adare.py --benchmarks CyberShake_1000 --runs 1 --generations 15 --population-size 80
+
+live:
+	$(PYTHON) scripts/live_view.py --benchmark Montage_25 --generations 40 --population-size 80
 
 smoke:
-	$(PYTHON) main.py --benchmarks Montage_25 --runs 1 --generations 5 --population-size 30
+	$(PYTHON) scripts/main.py --benchmarks Montage_25 --runs 1 --generations 5 --population-size 30
 
 main20:
-	$(PYTHON) main.py --benchmarks Montage_25 CyberShake_30 Epigenomics_24 --runs 20 --generations 70 --population-size 100
+	$(PYTHON) scripts/main.py --benchmarks Montage_25 CyberShake_30 Epigenomics_24 --runs 20 --generations 70 --population-size 100
 
 extended-small:
-	$(PYTHON) run_extended_comparison.py --benchmarks Montage_25 CyberShake_30 Epigenomics_24 --algorithms ADARE NSGA-III NSGA-II MOEA/D QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 5 --generations 15 --population-size 80 --output-dir output/extended_small_menu
+	$(PYTHON) scripts/run_extended_comparison.py --benchmarks Montage_25 CyberShake_30 Epigenomics_24 --algorithms ADARE NSGA-III NSGA-II MOEA/D QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 5 --generations 15 --population-size 80 --output-dir output/extended_small_menu
 
 extended-1000-r20:
-	$(PYTHON) run_extended_comparison.py --benchmarks CyberShake_1000 Inspiral_1000 Montage_1000 Sipht_1000 --algorithms ADARE NSGA-III QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 20 --generations 15 --population-size 80 --output-dir output/extended_1000_r20
+	$(PYTHON) scripts/run_extended_comparison.py --benchmarks CyberShake_1000 Inspiral_1000 Montage_1000 Sipht_1000 --algorithms ADARE NSGA-III QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 20 --generations 15 --population-size 80 --output-dir output/extended_1000_r20
 
 extended-3000-r20:
-	$(PYTHON) run_extended_comparison.py --benchmarks Montage_3000_wfcommons Epigenomics_3000_wfcommons Seismology_3000_wfcommons Soykb_3000_wfcommons Srasearch_3000_wfcommons --algorithms ADARE NSGA-III QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 20 --generations 8 --population-size 60 --output-dir output/extended_3000_r20
+	$(PYTHON) scripts/run_extended_comparison.py --benchmarks Montage_3000_wfcommons Epigenomics_3000_wfcommons Seismology_3000_wfcommons Soykb_3000_wfcommons Srasearch_3000_wfcommons --algorithms ADARE NSGA-III QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 20 --generations 8 --population-size 60 --output-dir output/extended_3000_r20
 
 ablation:
-	$(PYTHON) run_ablation_v1_v5.py --runs 20 --output-dir output/ablation_full
+	$(PYTHON) scripts/run_ablation_v1_v5.py --runs 20 --output-dir output/ablation_full
 
 paper:
 	$(PYTHON) -c "import shutil; shutil.copyfile('article_ecml.tex','papers/article_ecml.tex')"
@@ -83,7 +92,7 @@ run-%:
 		$(PYTHON) $(BUILD_DIR)/format.py $(HISTORY_DIR)/$*.json -o "$$target_json" && \
 		echo "Conversion completed successfully."; \
 	fi; \
-	$(PYTHON) adare_vs_nsga3.py $*
+	$(PYTHON) scripts/adare_vs_nsga3.py $*
 
 clean:
 	rm -rf $(OUTPUT_DIR)/*
@@ -112,10 +121,14 @@ lint:
 
 help:
 	@echo "Available commands:"
-	@echo "  make / make menu      - Open the interactive ADARE menu with estimated durations"
+	@echo "  make                  - Install/prepare environment, then open the menu"
+	@echo "  make start            - Same as make: setup + prepare + menu"
+	@echo "  make menu             - Open the interactive ADARE menu only"
+	@echo "  make prepare          - Create output folders and syntax-check scripts"
 	@echo "  make run              - Run the ADARE algorithm with sample data"
 	@echo "  make adare            - Run ADARE only on Montage_25 (~1-5 min)"
 	@echo "  make adare-1000       - Run ADARE only on CyberShake_1000 (~5-15 min)"
+	@echo "  make live             - Launch ADARE evolution dashboard (~2-8 min + display)"
 	@echo "  make smoke            - Quick sanity run (~1-3 min)"
 	@echo "  make main20           - Main 20-run paper protocol (~45-90 min)"
 	@echo "  make extended-small   - Extended small-suite comparison (~20-45 min)"

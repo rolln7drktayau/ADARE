@@ -328,7 +328,7 @@ To verify this empirically, we instrumented controller selection/update, togethe
 \subsection{Artifact, Local Execution Context, and Hardware Configuration}
 All experiments were executed locally using the code in the current ADARE artifact (no cluster). We report the host details from system diagnostics because runtime differences at this scale are sensitive to workstation-level CPU and memory behavior.
 
-The artifact contains the Python implementation, JSON workflow/resource inputs, configuration files, plotting code, and paired-run driver. The main entry point is \texttt{main.py}; ADARE parameters are in \texttt{config/adare\_config.json}; benchmark inputs are under \texttt{data/benchmarks}; and controller traces are exported as per-benchmark trace and summary CSV files. This makes the adaptive-control decisions auditable rather than implicit in the final Pareto fronts.
+The artifact contains the Python implementation, JSON workflow/resource inputs, configuration files, plotting code, and paired-run driver. Runnable entry points are grouped under the scripts directory, including the paired-run driver and ADARE-only runner. ADARE parameters are stored in the configuration directory; benchmark inputs are under the benchmark data directory; and controller traces are exported as per-benchmark trace and summary CSV files. This makes the adaptive-control decisions auditable rather than implicit in the final Pareto fronts.
 
 \begin{table}[t]
 \caption{Local Host Machine (from system diagnostics)}
