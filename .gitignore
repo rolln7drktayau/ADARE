@@ -1,6 +1,9 @@
 # Python bytecode and caches
 __pycache__/
 *.pyc
+
+# Private review notes
+docs/cmt_response_audit.md
 *.pyo
 *.pyd
 *.py,cover
