@@ -16,8 +16,6 @@ Branche de travail a verifier :
 adare-independent-approach
 ```
 
-Si le depot est prive, il faut que le compte GitHub de Madame Sonia YASSA ait acces au depot.
-
 ## 2. Recuperer le projet
 
 ```bash
@@ -31,7 +29,7 @@ git checkout adare-independent-approach
 - Python 3.10+ recommande.
 - Git.
 - Make.
-- LaTeX/MiKTeX seulement si elle veut recompiler le PDF de l'article.
+- LaTeX/MiKTeX seulement si vous voulez recompiler le PDF de l'article.
 
 Sur Windows, si `make` n'est pas disponible, l'installer via Git Bash, MSYS2, Chocolatey, ou utiliser directement les commandes Python indiquees dans le README.
 
@@ -207,7 +205,7 @@ IEEE TEVC semble une cible ambitieuse mais coherente, car la version revisee met
 - evaluation comparative contre des familles MOEA classiques et adaptatives,
 - scalabilite sur workflows 1000/3000.
 
-Points a valider avant soumission journal :
+Points à valider avant soumission journal :
 
 - niveau de detail theorique attendu par TEVC,
 - longueur et format journal,
