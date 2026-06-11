@@ -193,10 +193,112 @@ def plot_summary_gain_heatmap(summary_rows: list[dict[str, str]], output_path: P
     plt.close(fig)
 
 
+def plot_pareto_from_rows(front_rows: list[dict[str, str]], output_path: Path) -> None:
+    benchmark_fronts: dict[str, dict[str, list[list[float]]]] = defaultdict(lambda: defaultdict(list))
+    for row in front_rows:
+        benchmark_fronts[row["benchmark"]][row["algorithm"]].append(
+            [float(row[name]) for name in ("makespan", "latency", "cost", "energy")]
+        )
+
+    benchmarks = sorted(benchmark_fronts)
+    pairs = [(0, 1), (2, 3)]
+    objective_labels = ["Makespan", "Latency", "Cost", "Energy"]
+    fig, axes = plt.subplots(len(benchmarks), len(pairs), figsize=(15, 4.2 * len(benchmarks)))
+    if len(benchmarks) == 1:
+        axes = np.asarray([axes])
+    for row_idx, benchmark in enumerate(benchmarks):
+        for col_idx, (i, j) in enumerate(pairs):
+            ax = axes[row_idx, col_idx]
+            for algo in ALGORITHMS:
+                points = benchmark_fronts[benchmark].get(algo)
+                if not points:
+                    continue
+                front = np.asarray(points, dtype=float)
+                ax.scatter(
+                    front[:, i],
+                    front[:, j],
+                    s=28 if algo == "ADARE" else 18,
+                    alpha=0.85 if algo == "ADARE" else 0.58,
+                    label=algo,
+                    color=COLORS[algo],
+                    edgecolors="#111111" if algo == "ADARE" else "none",
+                    linewidths=0.35 if algo == "ADARE" else 0.0,
+                )
+            ax.set_title(f"{benchmark}: {objective_labels[i]} vs {objective_labels[j]}", fontsize=11)
+            ax.set_xlabel(objective_labels[i], fontsize=10)
+            ax.set_ylabel(objective_labels[j], fontsize=10)
+            ax.grid(alpha=0.25, linestyle="--")
+            ax.tick_params(axis="both", labelsize=8)
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=4, fontsize=9)
+    fig.suptitle("Representative Pareto Fronts: ADARE vs All Baselines", fontsize=15)
+    fig.tight_layout(rect=[0, 0.06, 1, 0.96])
+    fig.savefig(output_path, dpi=300)
+    plt.close(fig)
+
+
+def plot_convergence_from_rows(history_rows: list[dict[str, str]], output_path: Path) -> None:
+    grouped: dict[str, dict[str, dict[int, list[list[float]]]]] = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+    for row in history_rows:
+        grouped[row["benchmark"]][row["algorithm"]][int(row["run"])].append(
+            [
+                float(row["makespan_best"]),
+                float(row["latency_best"]),
+                float(row["cost_best"]),
+                float(row["energy_best"]),
+            ]
+        )
+
+    benchmarks = sorted(grouped)
+    objective_labels = ["Makespan", "Latency", "Cost", "Energy"]
+    fig, axes = plt.subplots(len(benchmarks), len(objective_labels), figsize=(18, 3.4 * len(benchmarks)))
+    if len(benchmarks) == 1:
+        axes = np.asarray([axes])
+    for row_idx, benchmark in enumerate(benchmarks):
+        for obj_idx, obj_name in enumerate(objective_labels):
+            ax = axes[row_idx, obj_idx]
+            for algo in ALGORITHMS:
+                runs = grouped[benchmark].get(algo)
+                if not runs:
+                    continue
+                histories = np.asarray([runs[run_id] for run_id in sorted(runs)], dtype=float)
+                mean_curve = np.nanmean(histories[:, :, obj_idx], axis=0)
+                std_curve = np.nanstd(histories[:, :, obj_idx], axis=0)
+                x = np.arange(mean_curve.shape[0])
+                ax.plot(
+                    x,
+                    mean_curve,
+                    label=algo,
+                    color=COLORS[algo],
+                    linewidth=2.4 if algo == "ADARE" else 1.5,
+                    alpha=1.0 if algo == "ADARE" else 0.86,
+                )
+                ax.fill_between(
+                    x,
+                    mean_curve - std_curve,
+                    mean_curve + std_curve,
+                    color=COLORS[algo],
+                    alpha=0.16 if algo == "ADARE" else 0.08,
+                )
+            ax.set_title(f"{benchmark} - {obj_name}", fontsize=10)
+            ax.set_xlabel("Generation", fontsize=9)
+            ax.set_ylabel("Best value", fontsize=9)
+            ax.grid(alpha=0.25, linestyle="--")
+            ax.tick_params(axis="both", labelsize=8)
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=4, fontsize=9)
+    fig.suptitle("Convergence Traces: ADARE vs All Baselines", fontsize=15)
+    fig.tight_layout(rect=[0, 0.06, 1, 0.96])
+    fig.savefig(output_path, dpi=300)
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Create explicit multi-algorithm comparison figures.")
     parser.add_argument("--run-metrics", type=Path, required=True)
     parser.add_argument("--summary", type=Path, required=True)
+    parser.add_argument("--fronts", type=Path, default=Path("results/extended/extended_small_r5_representative_fronts.csv"))
+    parser.add_argument("--histories", type=Path, default=Path("results/extended/extended_small_r5_histories.csv"))
     parser.add_argument("--output-dir", type=Path, default=Path("Figures"))
     args = parser.parse_args()
 
@@ -206,6 +308,10 @@ def main() -> None:
     plot_core_boxplots(run_rows, args.output_dir / "multialgo_small_core_metric_boxplots.png")
     plot_normalized_scores(run_rows, args.output_dir / "multialgo_small_normalized_scores.png")
     plot_summary_gain_heatmap(summary_rows, args.output_dir / "multialgo_small_adare_gain_heatmap.png")
+    if args.fronts.exists():
+        plot_pareto_from_rows(load_rows(args.fronts), args.output_dir / "multialgo_pareto_small_workflows.png")
+    if args.histories.exists():
+        plot_convergence_from_rows(load_rows(args.histories), args.output_dir / "multialgo_convergence_small_workflows.png")
 
 
 if __name__ == "__main__":

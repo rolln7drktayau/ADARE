@@ -566,6 +566,20 @@ We replace the earlier two-algorithm Pareto and convergence snapshots with multi
 
 \begin{figure}[t]
 \centering
+\includegraphics[width=0.98\textwidth]{multialgo_pareto_small_workflows.png}
+\caption{Representative Pareto-front projections from the rerun small-workflow suite. Each subplot compares ADARE with all baselines; ADARE is shown in vermilion with a dark outline.}
+\label{fig:multialgo_pareto}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{multialgo_convergence_small_workflows.png}
+\caption{Generation-wise convergence traces on the rerun small-workflow suite. Curves show mean best objective values over five runs, with shaded standard-deviation bands.}
+\label{fig:multialgo_convergence}
+\end{figure}
+
+\begin{figure}[t]
+\centering
 \includegraphics[width=0.98\textwidth]{multialgo_small_core_metric_boxplots.png}
 \caption{Run-level distributions of HV, IGD, spacing, and epsilon on the rerun small-workflow suite with all baselines. ADARE is shown in vermilion; all algorithms use distinct colorblind-safe colors.}
 \label{fig:multialgo_small_boxplots}
@@ -585,7 +599,7 @@ We replace the earlier two-algorithm Pareto and convergence snapshots with multi
 \label{fig:multialgo_small_heatmap}
 \end{figure}
 
-Figures~\ref{fig:multialgo_small_boxplots}--\ref{fig:multialgo_small_heatmap} show the revised visual story more transparently. ADARE is no longer only contrasted with NSGA-III: the same rerun includes classical MOEAs and learning-assisted baselines. The boxplots expose metric dispersion, the normalized score figure aggregates front quality, objective extremes, and runtime under a common scale, and the heatmap identifies where gains are strongest or weakest for each workflow-baseline pair.
+Figures~\ref{fig:multialgo_pareto}--\ref{fig:multialgo_small_heatmap} show the revised visual story more transparently. ADARE is no longer only contrasted with NSGA-III: the same rerun includes classical MOEAs and learning-assisted baselines. The Pareto projections show representative trade-off fronts, the convergence traces show generation-wise behavior, the boxplots expose metric dispersion, the normalized score figure aggregates front quality, objective extremes, and runtime under a common scale, and the heatmap identifies where gains are strongest or weakest for each workflow-baseline pair.
 
 % Discussion refinement
 At this point, the practical question is less ``does ADARE ever help?'' and more ``when does the adaptive layer help most, and where are its limits?'' The discussion below addresses that question directly.

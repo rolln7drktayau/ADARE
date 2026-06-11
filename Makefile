@@ -55,7 +55,7 @@ main20:
 	$(PYTHON) scripts/main.py --benchmarks Montage_25 CyberShake_30 Epigenomics_24 --runs 20 --generations 70 --population-size 100
 
 extended-small:
-	$(PYTHON) scripts/run_extended_comparison.py --benchmarks Montage_25 CyberShake_30 Epigenomics_24 --algorithms ADARE NSGA-III NSGA-II MOEA/D QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 5 --generations 15 --population-size 80 --output-dir output/extended_small_menu
+	$(PYTHON) scripts/run_extended_comparison.py --benchmarks Montage_25 CyberShake_30 Epigenomics_24 --algorithms ADARE NSGA-III NSGA-II MOEA/D QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 5 --generations 15 --population-size 80 --output-dir output/extended_small_menu --figure-dir Figures
 
 extended-1000-r20:
 	$(PYTHON) scripts/run_extended_comparison.py --benchmarks CyberShake_1000 Inspiral_1000 Montage_1000 Sipht_1000 --algorithms ADARE NSGA-III QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 20 --generations 15 --population-size 80 --output-dir output/extended_1000_r20

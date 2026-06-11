@@ -14,6 +14,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import numpy as np
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
 
 from algorithms import (
     AdareAlgorithm,
@@ -49,6 +53,15 @@ QUALITY_DIRECTIONS = {
 }
 CORE_METRICS = ("hv", "igd", "spacing", "epsilon", "coverage")
 OBJECTIVES = ("makespan", "latency", "cost", "energy")
+ALGORITHM_COLORS = {
+    "ADARE": "#D55E00",
+    "NSGA-III": "#0072B2",
+    "NSGA-II": "#009E73",
+    "MOEA/D": "#CC79A7",
+    "QL-NSGA-III": "#E69F00",
+    "OVEA-style": "#56B4E9",
+    "QMOEA/D-AWA-style": "#000000",
+}
 
 
 def load_json(path: str | Path) -> Dict[str, Any]:
@@ -71,6 +84,104 @@ def aggregate(values: Sequence[float]) -> tuple[float, float]:
     return float(np.nanmean(arr)), float(np.nanstd(arr, ddof=1)) if len(arr) > 1 else 0.0
 
 
+def objective_label(name: str) -> str:
+    return {
+        "makespan": "Makespan",
+        "latency": "Latency",
+        "cost": "Cost",
+        "energy": "Energy",
+    }.get(name, name)
+
+
+def plot_multialgo_pareto(
+    benchmark_fronts: Dict[str, Dict[str, np.ndarray]],
+    selected_algorithms: Sequence[str],
+    output_path: Path,
+) -> None:
+    benchmarks = list(benchmark_fronts.keys())
+    pairs = [(0, 1), (2, 3)]
+    fig, axes = plt.subplots(len(benchmarks), len(pairs), figsize=(15, 4.2 * len(benchmarks)))
+    if len(benchmarks) == 1:
+        axes = np.asarray([axes])
+    for row_idx, benchmark in enumerate(benchmarks):
+        for col_idx, (i, j) in enumerate(pairs):
+            ax = axes[row_idx, col_idx]
+            for label in selected_algorithms:
+                front = benchmark_fronts[benchmark].get(label)
+                if front is None or len(front) == 0:
+                    continue
+                ax.scatter(
+                    front[:, i],
+                    front[:, j],
+                    s=28 if label == "ADARE" else 18,
+                    alpha=0.85 if label == "ADARE" else 0.58,
+                    label=label,
+                    color=ALGORITHM_COLORS.get(label),
+                    edgecolors="#111111" if label == "ADARE" else "none",
+                    linewidths=0.35 if label == "ADARE" else 0.0,
+                )
+            ax.set_title(f"{benchmark}: {objective_label(OBJECTIVES[i])} vs {objective_label(OBJECTIVES[j])}", fontsize=11)
+            ax.set_xlabel(objective_label(OBJECTIVES[i]), fontsize=10)
+            ax.set_ylabel(objective_label(OBJECTIVES[j]), fontsize=10)
+            ax.grid(alpha=0.25, linestyle="--")
+            ax.tick_params(axis="both", labelsize=8)
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=4, fontsize=9)
+    fig.suptitle("Representative Pareto Fronts: ADARE vs All Baselines", fontsize=15)
+    fig.tight_layout(rect=[0, 0.06, 1, 0.96])
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, dpi=300)
+    plt.close(fig)
+
+
+def plot_multialgo_convergence(
+    benchmark_histories: Dict[str, Dict[str, np.ndarray]],
+    selected_algorithms: Sequence[str],
+    output_path: Path,
+) -> None:
+    benchmarks = list(benchmark_histories.keys())
+    fig, axes = plt.subplots(len(benchmarks), len(OBJECTIVES), figsize=(18, 3.4 * len(benchmarks)), sharex=False)
+    if len(benchmarks) == 1:
+        axes = np.asarray([axes])
+    for row_idx, benchmark in enumerate(benchmarks):
+        for obj_idx, obj_name in enumerate(OBJECTIVES):
+            ax = axes[row_idx, obj_idx]
+            for label in selected_algorithms:
+                history = benchmark_histories[benchmark].get(label)
+                if history is None or history.size == 0:
+                    continue
+                mean_curve = np.nanmean(history[:, :, obj_idx], axis=0)
+                std_curve = np.nanstd(history[:, :, obj_idx], axis=0)
+                x = np.arange(mean_curve.shape[0])
+                ax.plot(
+                    x,
+                    mean_curve,
+                    label=label,
+                    color=ALGORITHM_COLORS.get(label),
+                    linewidth=2.4 if label == "ADARE" else 1.5,
+                    alpha=1.0 if label == "ADARE" else 0.86,
+                )
+                ax.fill_between(
+                    x,
+                    mean_curve - std_curve,
+                    mean_curve + std_curve,
+                    color=ALGORITHM_COLORS.get(label),
+                    alpha=0.16 if label == "ADARE" else 0.08,
+                )
+            ax.set_title(f"{benchmark} - {objective_label(obj_name)}", fontsize=10)
+            ax.set_xlabel("Generation", fontsize=9)
+            ax.set_ylabel("Best value", fontsize=9)
+            ax.grid(alpha=0.25, linestyle="--")
+            ax.tick_params(axis="both", labelsize=8)
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=4, fontsize=9)
+    fig.suptitle("Convergence Traces: ADARE vs All Baselines", fontsize=15)
+    fig.tight_layout(rect=[0, 0.06, 1, 0.96])
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, dpi=300)
+    plt.close(fig)
+
+
 def run_benchmark(
     benchmark: str,
     selected_algorithms: Sequence[str],
@@ -79,7 +190,7 @@ def run_benchmark(
     runs: int,
     base_seed: int,
     output_root: Path,
-) -> List[Dict[str, Any]]:
+) -> tuple[List[Dict[str, Any]], Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     print(f"\nExtended benchmark {benchmark} | runs={runs} | algos={', '.join(selected_algorithms)}")
     tasks = load_tasks(benchmark)
     order = topological_sort(tasks)
@@ -87,6 +198,7 @@ def run_benchmark(
     benchmark_dir.mkdir(parents=True, exist_ok=True)
 
     fronts: Dict[str, List[np.ndarray]] = {label: [] for label in selected_algorithms}
+    histories: Dict[str, List[np.ndarray]] = {label: [] for label in selected_algorithms}
     times: Dict[str, List[float]] = {label: [] for label in selected_algorithms}
     objective_best: Dict[str, List[np.ndarray]] = {label: [] for label in selected_algorithms}
 
@@ -120,6 +232,7 @@ def run_benchmark(
             front = filter_non_dominated(cls.population_to_array(result["population"]))
             pool = cls.population_to_array(result.get("objective_population", result["population"]))
             fronts[label].append(front)
+            histories[label].append(np.asarray(result["history"], dtype=float))
             times[label].append(float(result["time"]))
             objective_best[label].append(np.min(pool, axis=0))
 
@@ -194,7 +307,38 @@ def run_benchmark(
 
     write_csv(benchmark_dir / f"{benchmark}_extended_run_metrics.csv", run_rows)
     write_csv(benchmark_dir / f"{benchmark}_extended_summary.csv", summary_rows)
-    return summary_rows
+
+    front_rows: List[Dict[str, Any]] = []
+    history_rows: List[Dict[str, Any]] = []
+    representative_fronts: Dict[str, np.ndarray] = {}
+    history_arrays: Dict[str, np.ndarray] = {}
+    for label in selected_algorithms:
+        hv_values = np.asarray([row["hv"] for row in metrics_by_algo[label]], dtype=float)
+        best_idx = int(np.nanargmax(hv_values)) if np.any(np.isfinite(hv_values)) else 0
+        representative_fronts[label] = fronts[label][best_idx]
+        history_arrays[label] = np.asarray(histories[label], dtype=float)
+        for point_idx, point in enumerate(representative_fronts[label], start=1):
+            row = {
+                "benchmark": benchmark,
+                "algorithm": label,
+                "source_run": best_idx + 1,
+                "point": point_idx,
+            }
+            row.update({name: float(point[idx]) for idx, name in enumerate(OBJECTIVES)})
+            front_rows.append(row)
+        for run_idx, history in enumerate(histories[label], start=1):
+            for generation, values in enumerate(history):
+                row = {
+                    "benchmark": benchmark,
+                    "algorithm": label,
+                    "run": run_idx,
+                    "generation": generation,
+                }
+                row.update({f"{name}_best": float(values[idx]) for idx, name in enumerate(OBJECTIVES)})
+                history_rows.append(row)
+    write_csv(benchmark_dir / f"{benchmark}_extended_representative_fronts.csv", front_rows)
+    write_csv(benchmark_dir / f"{benchmark}_extended_histories.csv", history_rows)
+    return summary_rows, representative_fronts, history_arrays
 
 
 def parse_args() -> argparse.Namespace:
@@ -206,6 +350,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--population-size", type=int, default=80)
     parser.add_argument("--seed", type=int, default=20260219)
     parser.add_argument("--output-dir", default="output/extended")
+    parser.add_argument("--figure-dir", default=None, help="Optional directory for multi-algorithm Pareto/convergence figures")
     return parser.parse_args()
 
 
@@ -221,19 +366,26 @@ def main() -> None:
     nodes = build_nodes(load_environments())
 
     all_summary: List[Dict[str, Any]] = []
+    all_fronts: Dict[str, Dict[str, np.ndarray]] = {}
+    all_histories: Dict[str, Dict[str, np.ndarray]] = {}
     for bench_idx, benchmark in enumerate(args.benchmarks):
-        all_summary.extend(
-            run_benchmark(
-                benchmark=benchmark,
-                selected_algorithms=selected,
-                shared_config=shared_config,
-                nodes=nodes,
-                runs=args.runs,
-                base_seed=args.seed + 1000 * bench_idx,
-                output_root=Path(args.output_dir),
-            )
+        summary_rows, representative_fronts, history_arrays = run_benchmark(
+            benchmark=benchmark,
+            selected_algorithms=selected,
+            shared_config=shared_config,
+            nodes=nodes,
+            runs=args.runs,
+            base_seed=args.seed + 1000 * bench_idx,
+            output_root=Path(args.output_dir),
         )
+        all_summary.extend(summary_rows)
+        all_fronts[benchmark] = representative_fronts
+        all_histories[benchmark] = history_arrays
     write_csv(Path(args.output_dir) / "summary" / "extended_global_summary.csv", all_summary)
+    if args.figure_dir:
+        figure_dir = Path(args.figure_dir)
+        plot_multialgo_pareto(all_fronts, selected, figure_dir / "multialgo_pareto_small_workflows.png")
+        plot_multialgo_convergence(all_histories, selected, figure_dir / "multialgo_convergence_small_workflows.png")
 
     print("\nExtended comparison summary")
     for baseline in [label for label in selected if label != "ADARE"]:
