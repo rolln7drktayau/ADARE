@@ -67,10 +67,9 @@ ablation:
 	$(PYTHON) scripts/run_ablation_v1_v5.py --runs 20 --output-dir output/ablation_full
 
 paper:
-	$(PYTHON) -c "import shutil; shutil.copyfile('article_ecml.tex','papers/article_ecml.tex')"
-	pdflatex -interaction=nonstopmode article_ecml.tex
-	pdflatex -interaction=nonstopmode article_ecml.tex
-	$(PYTHON) -c "import shutil; shutil.copyfile('article_ecml.pdf','papers/article_ecml.pdf'); shutil.copyfile('article_ecml.pdf','ADARE_Adaptive_Data-driven_Algorithm_for_Resource_Evolution.pdf')"
+	cd papers && pdflatex -interaction=nonstopmode article_ecml.tex
+	cd papers && pdflatex -interaction=nonstopmode article_ecml.tex
+	$(PYTHON) -c "import shutil; shutil.copyfile('papers/article_ecml.pdf','ADARE_Adaptive_Data-driven_Algorithm_for_Resource_Evolution.pdf')"
 
 # Run with specific workflow
 run-%:

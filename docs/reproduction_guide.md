@@ -164,7 +164,6 @@ Figures/
 Les PDFs de l'article sont :
 
 ```text
-article_ecml.pdf
 papers/article_ecml.pdf
 ADARE_Adaptive_Data-driven_Algorithm_for_Resource_Evolution.pdf
 ```

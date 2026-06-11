@@ -4,6 +4,7 @@ __pycache__/
 
 # Private review notes
 docs/cmt_response_audit.md
+notes.txt
 *.pyo
 *.pyd
 *.py,cover
@@ -32,6 +33,7 @@ saves/
 htmlcov/
 
 # LaTeX temporary files
+/article_ecml.*
 *.aux
 *.fdb_latexmk
 *.fls
