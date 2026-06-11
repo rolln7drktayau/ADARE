@@ -21,7 +21,7 @@ BUILD_DIR = $(DATA_DIR)/build
 COOKIES_DIR = har_and_cookies
 
 # Main commands
-.PHONY: all start prepare menu run adare adare-1000 live smoke clean build setup format lint help main20 extended-small extended-1000-r20 extended-3000-r20 ablation figures paper
+.PHONY: all start prepare menu run adare adare-1000 live smoke clean build setup format lint help main20 extended-small extended-1000-r20 extended-3000-r20 ablation figures paper swevo-paper
 
 all: start
 
@@ -74,6 +74,11 @@ paper:
 	cd papers && pdflatex -interaction=nonstopmode article_ecml.tex
 	cd papers && pdflatex -interaction=nonstopmode article_ecml.tex
 	$(PYTHON) -c "import shutil; shutil.copyfile('papers/article_ecml.pdf','ADARE_Adaptive_Data-driven_Algorithm_for_Resource_Evolution.pdf')"
+
+swevo-paper:
+	cd papers && pdflatex -interaction=nonstopmode article_swevo.tex
+	cd papers && pdflatex -interaction=nonstopmode article_swevo.tex
+	$(PYTHON) -c "import shutil; shutil.copyfile('papers/article_swevo.pdf','ADARE_SwEvo_Submission.pdf')"
 
 # Run with specific workflow
 run-%:
@@ -140,6 +145,7 @@ help:
 	@echo "  make ablation         - V1-V5 ablation (~30-75 min)"
 	@echo "  make figures          - Regenerate extended multi-algorithm figures (<1 min)"
 	@echo "  make paper            - Compile and sync PDFs (~10-30 sec)"
+	@echo "  make swevo-paper      - Compile Elsevier/Swarm Evol. Comput. submission PDF (~10-30 sec)"
 	@echo "  make run-WORKFLOW_SIZE - Run with specific workflow (e.g., make run-CyberShake_30)"
 	@echo "  make clean            - Remove generated files"
 	@echo "  make setup            - Install dependencies"
