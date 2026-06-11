@@ -24,15 +24,20 @@ class MenuAction:
     runner: Callable[[], int]
 
 
-def run_command(args: Sequence[str], title: str) -> int:
+def run_command(args: Sequence[str], title: str, cwd: Path = ROOT) -> int:
     print(f"\n== {title} ==")
     print("Commande:", " ".join(args))
-    return subprocess.run(list(args), cwd=ROOT).returncode
+    return subprocess.run(list(args), cwd=cwd).returncode
 
 
-def run_commands(commands: Sequence[tuple[Sequence[str], str]]) -> int:
-    for args, title in commands:
-        code = run_command(args, title)
+def run_commands(commands: Sequence[tuple[Sequence[str], str] | tuple[Sequence[str], str, Path]]) -> int:
+    for command in commands:
+        if len(command) == 3:
+            args, title, cwd = command
+        else:
+            args, title = command
+            cwd = ROOT
+        code = run_command(args, title, cwd)
         if code != 0:
             return code
     return 0
@@ -65,17 +70,15 @@ def clean_outputs() -> int:
 
 def compile_paper() -> int:
     commands = [
-        ([PYTHON, "-c", "from pathlib import Path; import shutil; shutil.copyfile('article_ecml.tex', 'papers/article_ecml.tex')"], "Synchroniser article_ecml.tex"),
-        (["pdflatex", "-interaction=nonstopmode", "article_ecml.tex"], "Compilation LaTeX 1/2"),
-        (["pdflatex", "-interaction=nonstopmode", "article_ecml.tex"], "Compilation LaTeX 2/2"),
+        (["pdflatex", "-interaction=nonstopmode", "article_ecml.tex"], "Compilation LaTeX 1/2", ROOT / "papers"),
+        (["pdflatex", "-interaction=nonstopmode", "article_ecml.tex"], "Compilation LaTeX 2/2", ROOT / "papers"),
         (
             [
                 PYTHON,
                 "-c",
                 (
                     "import shutil; "
-                    "shutil.copyfile('article_ecml.pdf','papers/article_ecml.pdf'); "
-                    "shutil.copyfile('article_ecml.pdf','ADARE_Adaptive_Data-driven_Algorithm_for_Resource_Evolution.pdf')"
+                    "shutil.copyfile('papers/article_ecml.pdf','ADARE_Adaptive_Data-driven_Algorithm_for_Resource_Evolution.pdf')"
                 ),
             ],
             "Synchroniser les PDFs",

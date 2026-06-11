@@ -538,6 +538,13 @@ Scale & Baseline & ADARE core wins & Mean core gain (\%) & Mean HV gain (\%) \\
 
 \begin{figure}[t]
 \centering
+\includegraphics[width=0.95\textwidth]{extended_algorithm_core_score_by_scale.png}
+\caption{Explicit normalized front-quality comparison between ADARE and all extended baselines.}
+\label{fig:extended_algorithm_scores}
+\end{figure}
+
+\begin{figure}[t]
+\centering
 \includegraphics[width=0.95\textwidth]{large_r20_core_gain.png}
 \caption{Mean ADARE core-quality gain in the 20-repeat large-scale confirmatory protocol.}
 \label{fig:large20_gain}
@@ -548,6 +555,13 @@ Scale & Baseline & ADARE core wins & Mean core gain (\%) & Mean HV gain (\%) \\
 \includegraphics[width=0.95\textwidth]{large_r20_core_win_rate.png}
 \caption{ADARE core-metric win rate in the 20-repeat large-scale confirmatory protocol.}
 \label{fig:large20_wins}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{large_r20_algorithm_core_score.png}
+\caption{Explicit normalized front-quality comparison between ADARE and adaptive baselines in the 20-repeat large-scale protocol.}
+\label{fig:large20_algorithm_scores}
 \end{figure}
 
 The extended results are more conservative and more useful than the original NSGA-III-only story. ADARE remains favorable against NSGA-III at all three scales, stays clearly ahead of NSGA-II and MOEA/D in the screening suite, and remains positive against the two added adaptive families in the 20-repeat large-scale protocol. OVEA-style is beaten strongly at 1000 and 3000 tasks, suggesting that reference-vector Q-learning operator adaptation alone is not enough for heterogeneous workflow schedules. QMOEA/D-AWA-style is more competitive but still trails ADARE by +29.44\% mean core gain on 1000-task workflows and +17.92\% on the 3000-task suite. QL-NSGA-III remains the strongest cautionary baseline: ADARE's gains are smaller against it, but still positive at both large scales. This shows that adaptive operator selection is a real competitive family; ADARE's contribution is the Pareto-contextual reward, diversity-aware mutation, archive guidance, and workflow-specific control design rather than the mere presence of learning.

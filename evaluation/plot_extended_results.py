@@ -15,11 +15,103 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 
 CORE_METRICS = {"hv", "igd", "spacing", "epsilon", "coverage"}
+SCORE_METRICS = {"hv", "igd", "spacing", "epsilon"}
+HIGHER_IS_BETTER = {"hv"}
 
 
 def load_rows(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
+
+
+def row_scale(row: dict[str, str], fallback: str | None = None) -> str:
+    if "scale" in row and row["scale"]:
+        return row["scale"]
+    if fallback:
+        return fallback
+    benchmark = row["benchmark"]
+    if "3000" in benchmark:
+        return "3000"
+    if "1000" in benchmark:
+        return "1000"
+    return "small"
+
+
+def algorithm_metric_values(rows: list[dict[str, str]], fallback_scale: str | None = None) -> dict[tuple[str, str, str], dict[str, float]]:
+    values: dict[tuple[str, str, str], dict[str, float]] = defaultdict(dict)
+    for row in rows:
+        metric = row["metric"]
+        if metric not in SCORE_METRICS:
+            continue
+        key = (row_scale(row, fallback_scale), row["benchmark"], metric)
+        values[key]["ADARE"] = float(row["adare_mean"])
+        values[key][row["baseline"]] = float(row["baseline_mean"])
+    return values
+
+
+def normalized_algorithm_scores(rows: list[dict[str, str]], fallback_scale: str | None = None) -> dict[tuple[str, str], float]:
+    score_values: dict[tuple[str, str], list[float]] = defaultdict(list)
+    for (scale, _benchmark, metric), algo_values in algorithm_metric_values(rows, fallback_scale).items():
+        finite = {algo: value for algo, value in algo_values.items() if np.isfinite(value)}
+        if not finite:
+            continue
+        if metric in HIGHER_IS_BETTER:
+            best = max(finite.values())
+            if best <= 0:
+                continue
+            for algo, value in finite.items():
+                score_values[(scale, algo)].append(100.0 * value / best)
+        else:
+            positive = [value for value in finite.values() if value > 0]
+            if not positive:
+                continue
+            best = min(positive)
+            for algo, value in finite.items():
+                if value > 0:
+                    score_values[(scale, algo)].append(100.0 * best / value)
+
+    return {key: float(np.mean(values)) for key, values in score_values.items() if values}
+
+
+def plot_algorithm_score(
+    rows: list[dict[str, str]],
+    output_path: Path,
+    title: str,
+    scales: list[str],
+    baselines: list[str],
+    fallback_scale: str | None = None,
+) -> None:
+    scores = normalized_algorithm_scores(rows, fallback_scale)
+    algorithms = ["ADARE", *baselines]
+    x = np.arange(len(scales))
+    width = min(0.72 / max(1, len(algorithms)), 0.14)
+    center = (len(algorithms) - 1) / 2
+
+    fig, ax = plt.subplots(figsize=(13, 6.5))
+    for offset, algorithm in enumerate(algorithms):
+        values = [scores.get((scale, algorithm), np.nan) for scale in scales]
+        style = {"color": "#1f77b4", "edgecolor": "#111111", "linewidth": 1.0} if algorithm == "ADARE" else {}
+        ax.bar(x + (offset - center) * width, values, width=width, label=algorithm, **style)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(["Small", "1000 tasks", "3000 tasks"] if scales == ["small", "1000", "3000"] else [f"{scale} tasks" for scale in scales], fontsize=11)
+    ax.set_ylim(0, 105)
+    ax.set_ylabel("Normalized front-quality score (%)", fontsize=12)
+    ax.set_title(title, fontsize=14)
+    ax.text(
+        0.01,
+        0.02,
+        "Score aggregates HV, IGD, spacing, and epsilon; best algorithm per benchmark/metric = 100.",
+        transform=ax.transAxes,
+        fontsize=9,
+        color="#333333",
+    )
+    ax.tick_params(axis="y", labelsize=10)
+    ax.grid(axis="y", alpha=0.25, linestyle="--")
+    ax.legend(ncol=4, fontsize=9)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=300)
+    plt.close(fig)
 
 
 def main() -> None:
@@ -89,6 +181,35 @@ def main() -> None:
     fig.tight_layout()
     fig.savefig(args.output_dir / "extended_core_win_rate_by_scale.png", dpi=300)
     plt.close(fig)
+
+    plot_algorithm_score(
+        rows=[row for row in load_rows(args.input) if row["metric"] in SCORE_METRICS],
+        output_path=args.output_dir / "extended_algorithm_core_score_by_scale.png",
+        title="Explicit Front-Quality Comparison: ADARE vs Baselines",
+        scales=scales,
+        baselines=baselines,
+    )
+
+    r20_paths = [
+        (Path("results/extended/extended_1000_r20_summary.csv"), "1000"),
+        (Path("results/extended/extended_3000_r20_summary.csv"), "3000"),
+    ]
+    r20_rows: list[dict[str, str]] = []
+    for path, scale in r20_paths:
+        if not path.exists():
+            continue
+        for row in load_rows(path):
+            row = dict(row)
+            row["scale"] = scale
+            r20_rows.append(row)
+    if r20_rows:
+        plot_algorithm_score(
+            rows=[row for row in r20_rows if row["metric"] in SCORE_METRICS],
+            output_path=args.output_dir / "large_r20_algorithm_core_score.png",
+            title="Explicit 20-Run Large-Scale Comparison: ADARE vs Baselines",
+            scales=["1000", "3000"],
+            baselines=["NSGA-III", "QL-NSGA-III", "OVEA-style", "QMOEA/D-AWA-style"],
+        )
 
 
 if __name__ == "__main__":
