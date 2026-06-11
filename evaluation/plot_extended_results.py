@@ -149,58 +149,6 @@ def main() -> None:
     x = np.arange(len(scales))
     width = 0.13
 
-    fig, ax = plt.subplots(figsize=(13, 6.5))
-    center = (len(baselines) - 1) / 2
-    for offset, baseline in enumerate(baselines):
-        values = [np.mean(grouped.get((scale, baseline), [np.nan])) for scale in scales]
-        ax.bar(
-            x + (offset - center) * width,
-            values,
-            width=width,
-            label=baseline,
-            color=ALGORITHM_COLORS.get(baseline),
-            edgecolor="#111111",
-            linewidth=0.6,
-        )
-    ax.axhline(0.0, color="#333333", linewidth=1)
-    ax.set_xticks(x)
-    ax.set_xticklabels(["Small", "1000 tasks", "3000 tasks"], fontsize=11)
-    ax.set_ylabel("Mean ADARE core-quality gain (%)", fontsize=12)
-    ax.set_title("Extended ADARE Comparison Across Workflow Scales", fontsize=14)
-    ax.tick_params(axis="y", labelsize=10)
-    ax.grid(axis="y", alpha=0.25, linestyle="--")
-    ax.legend(ncol=3, fontsize=9)
-    fig.tight_layout()
-    fig.savefig(args.output_dir / "extended_core_gain_by_scale.png", dpi=300)
-    plt.close(fig)
-
-    fig, ax = plt.subplots(figsize=(13, 6.5))
-    for offset, baseline in enumerate(baselines):
-        values = [
-            100.0 * wins.get((scale, baseline), 0) / max(1, counts.get((scale, baseline), 0))
-            for scale in scales
-        ]
-        ax.bar(
-            x + (offset - center) * width,
-            values,
-            width=width,
-            label=baseline,
-            color=ALGORITHM_COLORS.get(baseline),
-            edgecolor="#111111",
-            linewidth=0.6,
-        )
-    ax.set_xticks(x)
-    ax.set_xticklabels(["Small", "1000 tasks", "3000 tasks"], fontsize=11)
-    ax.set_ylim(0, 100)
-    ax.set_ylabel("ADARE core-quality win rate (%)", fontsize=12)
-    ax.set_title("ADARE Core-Metric Win Rate vs Extended Baselines", fontsize=14)
-    ax.tick_params(axis="y", labelsize=10)
-    ax.grid(axis="y", alpha=0.25, linestyle="--")
-    ax.legend(ncol=3, fontsize=9)
-    fig.tight_layout()
-    fig.savefig(args.output_dir / "extended_core_win_rate_by_scale.png", dpi=300)
-    plt.close(fig)
-
     plot_algorithm_score(
         rows=[row for row in load_rows(args.input) if row["metric"] in SCORE_METRICS],
         output_path=args.output_dir / "extended_algorithm_core_score_by_scale.png",
