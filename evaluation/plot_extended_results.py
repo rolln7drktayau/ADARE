@@ -17,6 +17,15 @@ import matplotlib.pyplot as plt  # noqa: E402
 CORE_METRICS = {"hv", "igd", "spacing", "epsilon", "coverage"}
 SCORE_METRICS = {"hv", "igd", "spacing", "epsilon"}
 HIGHER_IS_BETTER = {"hv"}
+ALGORITHM_COLORS = {
+    "ADARE": "#D55E00",
+    "NSGA-III": "#0072B2",
+    "NSGA-II": "#009E73",
+    "MOEA/D": "#CC79A7",
+    "QL-NSGA-III": "#E69F00",
+    "OVEA-style": "#56B4E9",
+    "QMOEA/D-AWA-style": "#000000",
+}
 
 
 def load_rows(path: Path) -> list[dict[str, str]]:
@@ -90,7 +99,9 @@ def plot_algorithm_score(
     fig, ax = plt.subplots(figsize=(13, 6.5))
     for offset, algorithm in enumerate(algorithms):
         values = [scores.get((scale, algorithm), np.nan) for scale in scales]
-        style = {"color": "#1f77b4", "edgecolor": "#111111", "linewidth": 1.0} if algorithm == "ADARE" else {}
+        style = {"color": ALGORITHM_COLORS.get(algorithm), "edgecolor": "#111111", "linewidth": 0.8}
+        if algorithm == "ADARE":
+            style["linewidth"] = 1.4
         ax.bar(x + (offset - center) * width, values, width=width, label=algorithm, **style)
 
     ax.set_xticks(x)
@@ -98,18 +109,10 @@ def plot_algorithm_score(
     ax.set_ylim(0, 105)
     ax.set_ylabel("Normalized front-quality score (%)", fontsize=12)
     ax.set_title(title, fontsize=14)
-    ax.text(
-        0.01,
-        0.02,
-        "Score aggregates HV, IGD, spacing, and epsilon; best algorithm per benchmark/metric = 100.",
-        transform=ax.transAxes,
-        fontsize=9,
-        color="#333333",
-    )
     ax.tick_params(axis="y", labelsize=10)
     ax.grid(axis="y", alpha=0.25, linestyle="--")
-    ax.legend(ncol=4, fontsize=9)
-    fig.tight_layout()
+    ax.legend(ncol=4, fontsize=9, loc="upper center", bbox_to_anchor=(0.5, -0.09))
+    fig.tight_layout(rect=[0, 0.1, 1, 1])
     fig.savefig(output_path, dpi=300)
     plt.close(fig)
 
@@ -150,7 +153,15 @@ def main() -> None:
     center = (len(baselines) - 1) / 2
     for offset, baseline in enumerate(baselines):
         values = [np.mean(grouped.get((scale, baseline), [np.nan])) for scale in scales]
-        ax.bar(x + (offset - center) * width, values, width=width, label=baseline)
+        ax.bar(
+            x + (offset - center) * width,
+            values,
+            width=width,
+            label=baseline,
+            color=ALGORITHM_COLORS.get(baseline),
+            edgecolor="#111111",
+            linewidth=0.6,
+        )
     ax.axhline(0.0, color="#333333", linewidth=1)
     ax.set_xticks(x)
     ax.set_xticklabels(["Small", "1000 tasks", "3000 tasks"], fontsize=11)
@@ -169,7 +180,15 @@ def main() -> None:
             100.0 * wins.get((scale, baseline), 0) / max(1, counts.get((scale, baseline), 0))
             for scale in scales
         ]
-        ax.bar(x + (offset - center) * width, values, width=width, label=baseline)
+        ax.bar(
+            x + (offset - center) * width,
+            values,
+            width=width,
+            label=baseline,
+            color=ALGORITHM_COLORS.get(baseline),
+            edgecolor="#111111",
+            linewidth=0.6,
+        )
     ax.set_xticks(x)
     ax.set_xticklabels(["Small", "1000 tasks", "3000 tasks"], fontsize=11)
     ax.set_ylim(0, 100)

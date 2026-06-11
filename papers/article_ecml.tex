@@ -589,65 +589,31 @@ V5 & Y & Y & Y & 30.60 & 9.47 & 6.93 & 15/15 \\
 
 Numerically, V2 and V3 improve over V1 but remain less consistent (quality wins: 11/18 and 14/18), while V4 and V5 are both stronger (18/18), with V5 giving the best mean core gain. In Table~\ref{tab:ablation_design}, N/Y/P denote No/Yes/Partial. For a metric $m$, we compute $g_m(\%)=\frac{A_m-N_m}{|N_m|}\times100$ for max metrics and $g_m(\%)=\frac{N_m-A_m}{|N_m|}\times100$ for min metrics. Core (\%) averages $g_m$ over HV, IGD, spacing, epsilon, and coverage; Obj. (\%) averages $g_m$ over makespan\_best, latency\_best, cost\_best, and energy\_best; Time (\%) is runtime gain; Wins counts positive core gains across the three benchmarks (out of 15). Positive values indicate ADARE gains.
 
-\subsection{Qualitative Pareto and Convergence Analysis}
-We inspect representative Pareto projections and convergence traces next because the tables alone do not show \emph{how} the search behavior changes.
+\subsection{Explicit Multi-Algorithm Visual Analysis}
+We replace the earlier two-algorithm Pareto and convergence snapshots with multi-algorithm figures from the extended runner. This avoids a misleading visual emphasis on only NSGA-III and makes the comparison against NSGA-II, MOEA/D, QL-NSGA-III, OVEA-style, and QMOEA/D-AWA-style directly visible.
 
 \begin{figure}[t]
 \centering
-\begin{minipage}[t]{0.485\textwidth}
-\centering
-\includegraphics[width=\linewidth]{pareto_test_montage25.png}\\[-0.5ex]
-\scriptsize (a) Montage\_25
-\end{minipage}\hfill
-\begin{minipage}[t]{0.485\textwidth}
-\centering
-\includegraphics[width=\linewidth]{pareto_test_cybershake30.png}\\[-0.5ex]
-\scriptsize (b) CyberShake\_30
-\end{minipage}
-
-\vspace{0.6ex}
-
-\begin{minipage}[t]{0.485\textwidth}
-\centering
-\includegraphics[width=\linewidth]{pareto_test_epigenomics24.png}\\[-0.5ex]
-\scriptsize (c) Epigenomics\_24
-\end{minipage}\hfill
-\begin{minipage}[t]{0.485\textwidth}
-\centering
-\includegraphics[width=\linewidth]{pareto_test_cybershake100.png}\\[-0.5ex]
-\scriptsize (d) CyberShake\_100
-\end{minipage}
-\caption{Representative Pareto projections (ADARE vs NSGA-III) across three main workflow families, plus a larger available case (CyberShake\_100) from an exploratory paired run set.}
-\label{fig:pareto_all}
+\includegraphics[width=0.98\textwidth]{multialgo_small_core_metric_boxplots.png}
+\caption{Run-level distributions of HV, IGD, spacing, and epsilon on the rerun small-workflow suite with all baselines. ADARE is shown in vermilion; all algorithms use distinct colorblind-safe colors.}
+\label{fig:multialgo_small_boxplots}
 \end{figure}
-
-Figure~\ref{fig:pareto_all} is consistent with the quantitative results: ADARE extends favorable regions on Montage, broadens coverage on CyberShake, and improves spread on Epigenomics while preserving strong objective extremes. The larger CyberShake\_100 projection remains coherent with that trend and gives an additional visual stress case beyond the three main benchmarks.
 
 \begin{figure}[t]
 \centering
-\begin{minipage}[t]{0.485\textwidth}
-\centering
-\includegraphics[width=\linewidth]{convergence_test_montage25.png}\\[-0.5ex]
-\scriptsize (a) Montage\_25
-\end{minipage}\hfill
-\begin{minipage}[t]{0.485\textwidth}
-\centering
-\includegraphics[width=\linewidth]{convergence_test_cybershake30.png}\\[-0.5ex]
-\scriptsize (b) CyberShake\_30
-\end{minipage}
-
-\vspace{0.6ex}
-
-\begin{minipage}[t]{0.69\textwidth}
-\centering
-\includegraphics[width=\linewidth]{convergence_test_epigenomics24.png}\\[-0.5ex]
-\scriptsize (c) Epigenomics\_24
-\end{minipage}
-\caption{Convergence traces (best objective values by generation) for Montage, CyberShake, and Epigenomics. Larger panels are used to improve readability of generation-wise trajectories and confidence bands.}
-\label{fig:conv_all}
+\includegraphics[width=0.98\textwidth]{multialgo_small_normalized_scores.png}
+\caption{Explicit normalized small-workflow comparison across front quality, objective extremes, and runtime. Each benchmark/run/metric is normalized so the best algorithm receives 100.}
+\label{fig:multialgo_small_scores}
 \end{figure}
 
-Figure~\ref{fig:conv_all} makes the control effect visible in our runs. This matters. We see earlier trajectory separation on Montage and CyberShake, and later generations stabilize differently. Epigenomics still improves, mainly through front structure, while runtime movement stays smaller.
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{multialgo_small_adare_gain_heatmap.png}
+\caption{Mean ADARE core-metric gain by workflow and baseline on the rerun small-workflow suite. Green cells indicate favorable ADARE margins; red cells identify competitive baselines or weaker metrics.}
+\label{fig:multialgo_small_heatmap}
+\end{figure}
+
+Figures~\ref{fig:multialgo_small_boxplots}--\ref{fig:multialgo_small_heatmap} show the revised visual story more transparently. ADARE is no longer only contrasted with NSGA-III: the same rerun includes classical MOEAs and learning-assisted baselines. The boxplots expose metric dispersion, the normalized score figure aggregates front quality, objective extremes, and runtime under a common scale, and the heatmap identifies where gains are strongest or weakest for each workflow-baseline pair.
 
 % Discussion refinement
 At this point, the practical question is less ``does ADARE ever help?'' and more ``when does the adaptive layer help most, and where are its limits?'' The discussion below addresses that question directly.

@@ -21,7 +21,7 @@ BUILD_DIR = $(DATA_DIR)/build
 COOKIES_DIR = har_and_cookies
 
 # Main commands
-.PHONY: all start prepare menu run adare adare-1000 live smoke clean build setup format lint help main20 extended-small extended-1000-r20 extended-3000-r20 ablation paper
+.PHONY: all start prepare menu run adare adare-1000 live smoke clean build setup format lint help main20 extended-small extended-1000-r20 extended-3000-r20 ablation figures paper
 
 all: start
 
@@ -29,7 +29,7 @@ start: setup prepare menu
 
 prepare:
 	$(PYTHON) -c "from pathlib import Path; [Path(p).mkdir(parents=True, exist_ok=True) for p in ('output/plots','output/reports','results/extended','Figures','data/history')]"
-	$(PYTHON) -m py_compile scripts/main.py scripts/run_adare.py scripts/run_extended_comparison.py scripts/run_ablation_v1_v5.py scripts/live_view.py scripts/make_menu.py scripts/adare_vs_nsga3.py
+	$(PYTHON) -m py_compile scripts/main.py scripts/run_adare.py scripts/run_extended_comparison.py scripts/run_ablation_v1_v5.py scripts/live_view.py scripts/make_menu.py scripts/adare_vs_nsga3.py evaluation/plot_extended_results.py evaluation/plot_multialgo_figures.py
 
 menu:
 	$(PYTHON) scripts/make_menu.py
@@ -65,6 +65,10 @@ extended-3000-r20:
 
 ablation:
 	$(PYTHON) scripts/run_ablation_v1_v5.py --runs 20 --output-dir output/ablation_full
+
+figures:
+	$(PYTHON) evaluation/plot_extended_results.py --input results/extended/extended_global_summary.csv --output-dir Figures
+	$(PYTHON) evaluation/plot_multialgo_figures.py --run-metrics results/extended/extended_small_r5_run_metrics.csv --summary results/extended/extended_small_r5_summary.csv --output-dir Figures
 
 paper:
 	cd papers && pdflatex -interaction=nonstopmode article_ecml.tex
@@ -134,6 +138,7 @@ help:
 	@echo "  make extended-1000-r20 - Long 1000-task 20-run protocol (~2h-2h15)"
 	@echo "  make extended-3000-r20 - Long 3000-task 20-run protocol (~3h-4h)"
 	@echo "  make ablation         - V1-V5 ablation (~30-75 min)"
+	@echo "  make figures          - Regenerate extended multi-algorithm figures (<1 min)"
 	@echo "  make paper            - Compile and sync PDFs (~10-30 sec)"
 	@echo "  make run-WORKFLOW_SIZE - Run with specific workflow (e.g., make run-CyberShake_30)"
 	@echo "  make clean            - Remove generated files"

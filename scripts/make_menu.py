@@ -211,7 +211,10 @@ def actions() -> list[MenuAction]:
         MenuAction("9", "Long 1000 r20", "2h-2h15", "20 runs sur les workflows 1000 avec baselines adaptatives.", lambda: run_command([PYTHON, "scripts/run_extended_comparison.py", "--benchmarks", *wf1000, "--algorithms", *adaptive_algos, "--runs", "20", "--generations", "15", "--population-size", "80", "--output-dir", "output/extended_1000_r20"], "Long 1000 r20")),
         MenuAction("10", "Long 3000 r20", "3h-4h", "20 runs sur les workflows WfCommons 3000 avec baselines adaptatives.", lambda: run_command([PYTHON, "scripts/run_extended_comparison.py", "--benchmarks", *wf3000, "--algorithms", *adaptive_algos, "--runs", "20", "--generations", "8", "--population-size", "60", "--output-dir", "output/extended_3000_r20"], "Long 3000 r20")),
         MenuAction("11", "Ablation V1-V5", "30-75 min", "Recalcule l'ablation des modules ADARE.", lambda: run_command([PYTHON, "scripts/run_ablation_v1_v5.py", "--runs", "20", "--output-dir", "output/ablation_full"], "Ablation V1-V5")),
-        MenuAction("12", "Figures etendues", "<1 min", "Regenere les figures depuis results/extended.", lambda: run_command([PYTHON, "evaluation/plot_extended_results.py", "--summary", "results/extended/extended_global_summary.csv", "--output-dir", "Figures"], "Figures etendues")),
+        MenuAction("12", "Figures etendues", "<1 min", "Regenere les figures depuis results/extended.", lambda: run_commands([
+            ([PYTHON, "evaluation/plot_extended_results.py", "--input", "results/extended/extended_global_summary.csv", "--output-dir", "Figures"], "Figures de synthese etendue"),
+            ([PYTHON, "evaluation/plot_multialgo_figures.py", "--run-metrics", "results/extended/extended_small_r5_run_metrics.csv", "--summary", "results/extended/extended_small_r5_summary.csv", "--output-dir", "Figures"], "Figures multi-algorithmes explicites"),
+        ])),
         MenuAction("13", "Compiler et synchroniser PDF", "10-30 sec", "Compile article_ecml.pdf et met a jour les deux PDFs demandes.", compile_paper),
         MenuAction("14", "Benchmark comparatif personnalise", "variable", "Choisir benchmark, runs, generations, population.", custom_benchmark),
         MenuAction("15", "Comparaison etendue personnalisee", "variable", "Choisir workflows, algorithmes, runs et budget.", extended_custom),
