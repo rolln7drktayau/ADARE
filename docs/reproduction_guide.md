@@ -13,7 +13,7 @@ https://github.com/rolln7drktayau/ADARE
 Branche de travail a verifier :
 
 ```text
-adare-independent-approach
+master
 ```
 
 ## 2. Recuperer le projet
@@ -21,7 +21,7 @@ adare-independent-approach
 ```bash
 git clone https://github.com/rolln7drktayau/ADARE.git
 cd ADARE
-git checkout adare-independent-approach
+git checkout master
 ```
 
 ## 3. Prerequis

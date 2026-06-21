@@ -21,6 +21,7 @@ env/
 # Runtime and profiling artifacts
 output/
 data/history/
+data/dxdiag.txt
 CMT/
 saves/
 *.prof
