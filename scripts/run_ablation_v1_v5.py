@@ -88,7 +88,7 @@ def build_variants(base_cfg: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
 
 def main() -> int:
     args = parse_args()
-    root = Path(__file__).resolve().parent
+    root = Path(__file__).resolve().parents[1]
 
     main_cfg = load_json(root / "config" / "main_config.json")
     adare_cfg = load_json(root / "config" / "adare_config.json")

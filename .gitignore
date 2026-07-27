@@ -5,6 +5,7 @@ __pycache__/
 # Private review notes
 docs/cmt_response_audit.md
 notes.txt
+swevo_Major_Reviews.txt
 *.pyo
 *.pyd
 *.py,cover
@@ -44,3 +45,4 @@ htmlcov/
 # OS/editor noise
 .DS_Store
 Thumbs.db
+.vscode/
