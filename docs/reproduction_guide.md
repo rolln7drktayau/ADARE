@@ -6,10 +6,10 @@ Ce guide décrit l'utilisation publique de l'artefact de recherche ADARE. Le dé
 https://github.com/rolln7drktayau/ADARE
 ```
 
-La révision SwEvo 2026 est développée sur la branche :
+La version publique de référence est disponible sur la branche :
 
 ```text
-review/swevo-major-revision-2026
+master
 ```
 
 ## 1. Installation
@@ -19,7 +19,7 @@ Prérequis : Git et Python 3.11 ou plus récent. La campagne publiée a utilisé
 ```bash
 git clone https://github.com/rolln7drktayau/ADARE.git
 cd ADARE
-git checkout review/swevo-major-revision-2026
+git checkout master
 python -m venv .venv
 ```
 
