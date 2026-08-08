@@ -1,7 +1,0 @@
-Highlights
-
-- ADARE learns Pareto-contextual operator control for workflow scheduling.
-- The controller uses phase, diversity, stagnation, and multi-signal rewards.
-- Density-aware mutation and archive guidance improve Pareto-front quality.
-- Repeated 1000-task and 3000-task tests compare adaptive MOEA baselines.
-- Source code, workflows, scripts, and figures are provided for reproduction.

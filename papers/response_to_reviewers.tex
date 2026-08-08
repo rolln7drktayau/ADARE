@@ -1,0 +1,148 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{hidelinks}
+\setlength{\emergencystretch}{3em}
+\newcommand{\response}[1]{\par\smallskip\noindent\textcolor{blue!55!black}{\textbf{Response:} #1}\par\medskip}
+\setlist[enumerate]{leftmargin=*,itemsep=0.8em}
+
+\begin{document}
+\begin{center}
+{\Large Response to the Editor and Reviewers}\\[0.5em]
+{\bfseries Manuscript SWEVO-D-26-01667}\\
+ADARE: Pareto-Contextual Adaptive Control for Many-Objective Workflow Scheduling in Heterogeneous Edge/Fog/Cloud Systems
+\end{center}
+
+We thank the Editor and the five reviewers for their detailed assessment. We substantially rewrote the paper and reran the experimental campaign. The revision positions ADARE explicitly as an adaptive NSGA-III extension, defines every controller and evaluator operation, removes unequal final-pool post-processing, reports paired inference for every comparison, and adds controller, reward, long-budget, convergence, memory, and resource diagnostics. We also corrected the MRL-MOEA and DRLMMEA references and moderated all generality and superiority claims.
+
+\section*{Reviewer 1}
+\begin{enumerate}
+\item \emph{Give the exact bounded multi-signal reward.}
+\response{Section ``Learning Formalization'' now defines dominance, range-normalized improvement, balanced progress, and four child--parent Hamming comparisons mathematically. It states the 0.45/0.35/0.15/0.05 weights, robust zero-range fallback, clipping, update order, and $\alpha=0.22$.}
+
+\item \emph{Provide a systematic module ablation.}
+\response{We added both the 20-run incremental V1--V5 ablation and a controlled experiment that holds mutation, archive, survival, evaluator, initialization, and budget fixed while comparing static, global-UCB, contextual-UCB, and the proposed reward. The absence of Holm-significant differences in the controlled comparison is reported explicitly; we no longer attribute the whole gain to the contextual controller alone.}
+
+\item \emph{Expand runtime-overhead analysis.}
+\response{New instrumentation separates controller selection, reward/update, mutation/repair, archive operations, evaluation, survival, initialization, and post-processing. On the final 1000-task traces, selection uses about 0.27\%, reward/update about 4.8\%, and archive work about 0.25\% of runtime.}
+
+\item \emph{Add parameter sensitivity.}
+\response{A 20-run sensitivity experiment tests dominance-heavy, improvement-heavy, equal-weight, low/high $\alpha$, tight clipping, and no clipping. None differs from the default after Holm correction; no-clipping is exactly identical, showing that the default bound did not activate in these runs.}
+
+\item \emph{Clarify fairness.}
+\response{The protocol now states matched seeds, initial populations, evaluators, population/generation budgets, and survival-set scoring. ADARE's previously augmented $P\cup A\cup K$ reporting was removed. All metrics and objective extremes now use only the equally sized final survival population. We also disclose cache-induced differences in realized unique objective evaluations.}
+
+\item \emph{Discuss generalizability.}
+\response{The Discussion now distinguishes workflow-tailored mutation/ranking/evaluation from the generally applicable contextual-control pattern. Compute-skew results and the competitive 100-generation QL-NSGA-III baseline delimit transfer claims.}
+
+\item \emph{Reduce repetition.}
+\response{Related work was shortened to three focused subsections, obsolete repeated tables were removed, and results are organized around generated consolidated tables.}
+
+\item \emph{Visualize controller behavior.}
+\response{A new phase/operator figure reports use and reward with run-level uncertainty. The artifact exports generation, context, action, reward, diversity, stagnation, and offspring survival for auditing.}
+\end{enumerate}
+
+\section*{Reviewer 2}
+\begin{enumerate}
+\item \emph{Clarify novelty.}
+\response{The Introduction and method now state that adaptive operator selection and UCB are established and are not claimed as novelty. The contribution is the jointly operationalized phase/diversity/stagnation context, Pareto-normalized reward, workflow-specific variation/repair, bounded archive interaction, and traceable validation around unchanged NSGA-III survival.}
+
+\item \emph{Use longer large-scale budgets or moderate claims.}
+\response{We added 20 paired runs at 50 and 100 generations on four 1000-task workflows, plus 10 runs at 20 generations in the 3000-task class. Convergence is plotted against both evaluations and time. The paper explicitly reports that QL-NSGA-III becomes competitive at 100 generations and removes universal scalability language.}
+
+\item \emph{Interpret when modules help or fail.}
+\response{The revised ablation discussion notes that incremental gains are not monotone, every adaptive V2--V5 variant is slower in the isolated ablation, and contextual control alone is not Holm-significant. Network scarcity favors ADARE, whereas compute skew often favors NSGA-III or QL-NSGA-III.}
+\end{enumerate}
+
+\section*{Reviewer 3}
+\begin{enumerate}
+\item \emph{Revise the abstract.}
+\response{The abstract was fully rewritten to state lineage, mechanisms, matched protocol, exact headline counts, reward validity, overhead, and the principal negative boundary result.}
+
+\item \emph{Add motivation and methodological progress.}
+\response{The Introduction now identifies the operational gap: inexpensive, unit-robust state/reward signals that can be computed per mating and audited against survival. The method overview explains why the adaptive layer surrounds rather than replaces NSGA-III survival.}
+
+\item \emph{Comment the algorithms.}
+\response{The pseudocode now annotates the significance and ordering of context construction, exploration/UCB choice, post-variation reward, trace export, mutation pressure, and conditional repair. The former third algorithm for an augmented final pool was removed because that pool created a fairness concern; archive operation and fair final scoring are now stated directly.}
+
+\item \emph{Expand experiments.}
+\response{We added V1--V5 and controlled ablations, reward sensitivity, all-algorithm small tests, 50/100-generation 1000-task tests, deeper 3000-task tests, ADARE traces, convergence by evaluations/time, sampled process-tree memory, and two resource perturbations.}
+
+\item \emph{Strengthen innovation and references.}
+\response{We narrowed the novelty claim, added/verified recent adaptive MOEA literature, corrected the MRL-MOEA and DRLMMEA metadata, and explain why cited methods from different encodings are not presented as directly executed baselines.}
+\end{enumerate}
+
+\section*{Reviewer 4}
+\begin{enumerate}
+\item \emph{Controlled static/global/contextual/reward ablation.}
+\response{Added exactly as requested, with identical non-controller components. Across 45 core comparisons, ADARE is favorable in 30, but none remains significant after Holm correction. The conclusion now attributes performance to the interacting system rather than contextual control alone.}
+
+\item \emph{Specify the contextual bandit.}
+\response{The paper gives phase boundaries 0.34/0.67, diversity threshold 0.45, stagnation threshold $z/7\geq0.70$ (five consecutive non-improving generations), the diagnostic scalar, $\alpha=0.22$, zero initialization, first-index deterministic tie-breaking, linear exploration 0.30 to 0.05, and all four crossover actions.}
+
+\item \emph{Make the reward operational and validate it.}
+\response{All four formulas, pair aggregation, robust ranges, and computation order are specified. Run-level Spearman analysis shows positive reward--survival correlation in 20/20 runs on both traced workflows (means 0.324 and 0.265; one-sided Wilcoxon $p=9.54\times10^{-7}$ for each).}
+
+\item \emph{Define mutation and repair exactly.}
+\response{The revised method gives the dynamic budget equation and experimental cap, the node-ranking equation, 0.55 heuristic probability, top-three sampling, gene probability, repair trigger, two-task/two-node search, and dominance/log-score acceptance.}
+
+\item \emph{Resolve final-pool fairness.}
+\response{Resolved in code and paper. Comparative runners use the final NSGA-III survival population for every algorithm and every metric. Targeted final anchors are disabled and no $P\cup A\cup K$ augmentation is scored. Realized unique evaluation counts are exported.}
+
+\item \emph{Justify the objective model and test redundancy.}
+\response{The paper now defines node serialization, dependency-ready time, cross-node transfer, outgoing overhead, residence-time latency, compute cost, and the compute-only working-power proxy. It states that idle/communication energy and transfer cost are omitted and treats inputs as simulator units. Run-level objective correlations are reported; cost--energy correlation reaches median $\rho=0.93$, and partial redundancy is acknowledged.}
+
+\item \emph{Clarify uncertainty.}
+\response{All systems-level uncertainty language was removed. The model is explicitly deterministic; randomness comes from evolutionary search only. Failures, contention, and time-varying resources are listed as future work.}
+
+\item \emph{Ablate reward clipping.}
+\response{Tight and disabled clipping were tested. Disabling clipping is identical to the default, demonstrating that clipping did not bind in the reported runs.}
+
+\item \emph{Report comprehensive paired statistics.}
+\response{The generated statistics file contains every algorithm--benchmark--metric comparison, the one-sided paired Wilcoxon result, Holm-adjusted value, paired rank-biserial effect, and deterministic paired-bootstrap 95\% interval. The paper prioritizes directional counts and corrected results.}
+
+\item \emph{Avoid mean core gain.}
+\response{Main conclusions no longer use averaged percentage gain. They use per-indicator paired directions, Holm significance, and confidence intervals. The V1--V5 mean is retained only as a clearly labeled compact ablation descriptor alongside its 15 indicator wins.}
+
+\item \emph{Document adapted baselines and add scheduling baselines.}
+\response{OVEA-style and QMOEA/D-AWA-style are now explicitly called workflow adaptations, and family-level superiority claims were removed. An exact MOHEFT/HEFT multiobjective implementation could not be validated within this revision; it is stated as external-validity work rather than silently replaced by a proxy.}
+
+\item \emph{Deepen large-scale runs and add evaluation/time/memory scaling.}
+\response{Added 50- and 100-generation 1000-task experiments, 20-generation 3000-task experiments, evaluation- and time-based convergence, and sampled process-tree memory at 25, 1000, and 2991 tasks. Claims remain bounded because only three sizes and moderate budgets were observed.}
+
+\item \emph{Vary resource configurations.}
+\response{Added compute-skew and network-scarce configurations. The requested variation in the number of nodes was not completed; the revision makes this limitation explicit and does not claim configuration-independent superiority.}
+
+\item \emph{Shorten related work.}
+\response{Reduced to three concise subsections and moved baseline/protocol details into Experiments.}
+
+\item \emph{Add recent modern algorithms.}
+\response{MRL-MOEA and DRLMMEA are now accurately cited. We did not claim unverified reproductions or manufacture incompatible workflow ports; instead, the paper clearly limits the executed modern comparison to QL-NSGA-III and the declared OVEA/QMOEA/D-AWA adaptations.}
+\end{enumerate}
+
+\section*{Reviewer 5}
+\begin{enumerate}
+\item \emph{Position ADARE relative to NSGA-III.}
+\response{The title, abstract, introduction, method, and conclusion now consistently call ADARE an adaptive extension/control layer for NSGA-III. We explicitly state that environmental survival is unchanged.}
+
+\item \emph{Justify reward weights and test robustness.}
+\response{The weights are presented as a default engineering balance rather than a theoretically optimal scalarization. Seven sensitivity variants test signal emphasis, equal weights, learning rate, and clipping; none differs after Holm correction.}
+
+\item \emph{Run deeper large-scale experiments.}
+\response{We added the requested 100-generation protocol on four 1000-task workflows with 20 paired runs. ADARE is favorable in 69/80 core comparisons, but only 9/20 against QL-NSGA-III, which is used to moderate the conclusion.}
+
+\item \emph{Separate workflow-tailored and general components.}
+\response{Phase/diversity/stagnation contextual selection and normalized multi-signal reward are generally transferable. Task-node ranking, assignment mutation, DAG repair priorities, and the deterministic evaluator are workflow-specific. This distinction is now stated in the positioning and Discussion.}
+
+\item \emph{Clarify overhead scale.}
+\response{The obsolete 5.17\% aggregate statement was replaced by instrumented 1000-task results: selection about 0.27\%, reward/update about 4.8\%, and archive about 0.25\%. A separate 25/1000/2991-task diagnostic reports total time and memory by algorithm.}
+\end{enumerate}
+
+\section*{Closing statement}
+We believe the revised manuscript is more reproducible and substantially more cautious. Most importantly, it now reports where ADARE does not dominate and separates evidence for the complete adaptive layer from evidence for the controller in isolation.
+
+\end{document}

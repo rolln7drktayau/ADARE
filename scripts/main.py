@@ -7,6 +7,7 @@ import csv
 import json
 import random
 import sys
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Sequence
 
@@ -191,6 +192,7 @@ def run_benchmark(
     histories: Dict[str, List[np.ndarray]] = {"ADARE": [], "NSGA-III": []}
     times: Dict[str, List[float]] = {"ADARE": [], "NSGA-III": []}
     objective_best: Dict[str, List[np.ndarray]] = {"ADARE": [], "NSGA-III": []}
+    objective_evaluations: Dict[str, List[int]] = {"ADARE": [], "NSGA-III": []}
     controller_trace_rows: List[Dict[str, Any]] = []
 
     nsga_shared = dict(shared_config)
@@ -202,7 +204,8 @@ def run_benchmark(
 
     for run_idx in range(runs):
         run_seed = base_seed + 97 * run_idx
-        print(f"  Run {run_idx + 1}/{runs} | seed={run_seed}")
+        run_percent = 100.0 * (run_idx + 1) / runs
+        print(f"  Run {run_idx + 1}/{runs} [{run_percent:6.2f}%] | seed={run_seed}", flush=True)
         init_pop = build_initial_population(
             seed=run_seed,
             population_size=int(shared_config["population_size"]),
@@ -210,6 +213,10 @@ def run_benchmark(
             num_nodes=len(nodes),
         )
 
+        # Use the same stochastic seed as well as the same initial population.
+        # Algorithm-specific RNG offsets would break the matched-pairs design.
+        algorithm_seed = run_seed + 11
+        construction_started = time.perf_counter()
         nsga = NSGA3Algorithm(
             shared_config=nsga_shared,
             algorithm_config=nsga3_config,
@@ -217,9 +224,11 @@ def run_benchmark(
             tasks=tasks,
             topological_order=order,
             objective_names=objective_names,
-            seed=run_seed + 11,
+            seed=algorithm_seed,
             initial_population=init_pop,
         )
+        nsga_construction_seconds = time.perf_counter() - construction_started
+        construction_started = time.perf_counter()
         adare = AdareAlgorithm(
             shared_config=adare_shared,
             algorithm_config=adare_config,
@@ -227,30 +236,31 @@ def run_benchmark(
             tasks=tasks,
             topological_order=order,
             objective_names=objective_names,
-            seed=run_seed + 17,
+            seed=algorithm_seed,
             initial_population=init_pop,
         )
+        adare_construction_seconds = time.perf_counter() - construction_started
 
         nsga_result = nsga.run()
         adare_result = adare.run()
 
-        nsga_front = filter_non_dominated(NSGA3Algorithm.population_to_array(nsga_result["population"]))
-        adare_front = filter_non_dominated(AdareAlgorithm.population_to_array(adare_result["population"]))
-        nsga_objective_pool = NSGA3Algorithm.population_to_array(
-            nsga_result.get("objective_population", nsga_result["population"])
-        )
-        adare_objective_pool = AdareAlgorithm.population_to_array(
-            adare_result.get("objective_population", adare_result["population"])
-        )
+        nsga_population = nsga_result.get("survival_population", nsga_result["population"])
+        adare_population = adare_result.get("survival_population", adare_result["population"])
+        nsga_front = filter_non_dominated(NSGA3Algorithm.population_to_array(nsga_population))
+        adare_front = filter_non_dominated(AdareAlgorithm.population_to_array(adare_population))
+        nsga_objective_pool = NSGA3Algorithm.population_to_array(nsga_population)
+        adare_objective_pool = AdareAlgorithm.population_to_array(adare_population)
 
         fronts["NSGA-III"].append(nsga_front)
         fronts["ADARE"].append(adare_front)
         histories["NSGA-III"].append(nsga_result["history"])
         histories["ADARE"].append(adare_result["history"])
-        times["NSGA-III"].append(float(nsga_result["time"]))
-        times["ADARE"].append(float(adare_result["time"]))
+        times["NSGA-III"].append(nsga_construction_seconds + float(nsga_result["time"]))
+        times["ADARE"].append(adare_construction_seconds + float(adare_result["time"]))
         objective_best["NSGA-III"].append(np.min(nsga_objective_pool, axis=0))
         objective_best["ADARE"].append(np.min(adare_objective_pool, axis=0))
+        objective_evaluations["NSGA-III"].append(int(nsga.objective_evaluations))
+        objective_evaluations["ADARE"].append(int(adare.objective_evaluations))
         for trace_row in adare_result.get("controller_trace", []):
             row = {"benchmark": benchmark, "run": run_idx + 1}
             row.update(trace_row)
@@ -279,8 +289,15 @@ def run_benchmark(
         nsga_runs.append(nsga_metrics)
 
         for algo_label, metrics in (("ADARE", adare_metrics), ("NSGA-III", nsga_metrics)):
-            row = {"benchmark": benchmark, "run": run_idx + 1, "algorithm": algo_label}
+            row = {
+                "benchmark": benchmark,
+                "run": run_idx + 1,
+                "seed": base_seed + 97 * run_idx,
+                "algorithm_seed": base_seed + 97 * run_idx + 11,
+                "algorithm": algo_label,
+            }
             row.update(metrics)
+            row["objective_evaluations"] = objective_evaluations[algo_label][run_idx]
             run_rows.append(row)
 
     summary_rows = summarize_benchmark(benchmark, objective_names, adare_runs, nsga_runs)
@@ -517,7 +534,7 @@ def main() -> int:
     """Program entrypoint: load config, run benchmarks, and export reports.
     """
     args = parse_args()
-    root = Path(__file__).resolve().parent
+    root = ROOT
     config_dir = root / "config"
 
     main_config = load_json(config_dir / "main_config.json")

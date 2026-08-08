@@ -41,8 +41,12 @@ class NSGA3Algorithm(BaseAlgorithm):
         try:
             population = self.create_population()
             history = [self.best_objectives(population)]
+            generation_snapshots: list[np.ndarray] = []
+            if bool(self.algorithm_config.get("capture_generation_snapshots", False)):
+                generation_snapshots.append(self.population_to_array(population))
+            self.record_generation_telemetry(0, population, start_time)
 
-            for _ in range(self.generations):
+            for gen in range(self.generations):
                 # Offspring are sampled from the current population with replacement.
                 offspring = [
                     self.toolbox.clone(population[self.random.randrange(len(population))])
@@ -66,6 +70,9 @@ class NSGA3Algorithm(BaseAlgorithm):
                 combined = population + offspring
                 population = tools.selNSGA3(combined, self.population_size, self.reference_points)
                 history.append(self.best_objectives(population))
+                if bool(self.algorithm_config.get("capture_generation_snapshots", False)):
+                    generation_snapshots.append(self.population_to_array(population))
+                self.record_generation_telemetry(gen + 1, population, start_time)
 
             elapsed = time.perf_counter() - start_time
             return {
@@ -73,6 +80,8 @@ class NSGA3Algorithm(BaseAlgorithm):
                 "objective_population": population,
                 "history": np.asarray(history, dtype=float),
                 "time": float(elapsed),
+                "generation_snapshots": generation_snapshots,
+                "generation_telemetry": list(self.generation_telemetry),
             }
         finally:
             self.shutdown()

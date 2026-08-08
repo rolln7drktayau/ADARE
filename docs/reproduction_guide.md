@@ -1,212 +1,123 @@
-# ADARE - Guide de reproduction pour Madame Sonia YASSA
+# Guide de reproduction ADARE
 
-Ce document accompagne la version revisee du projet ADARE apres les retours ECML PKDD.
-
-## 1. Depot GitHub
-
-Depot :
+Ce guide décrit l'utilisation publique de l'artefact de recherche ADARE. Le dépôt de référence est :
 
 ```text
 https://github.com/rolln7drktayau/ADARE
 ```
 
-Branche de travail a verifier :
+La révision SwEvo 2026 est développée sur la branche :
 
 ```text
-master
+review/swevo-major-revision-2026
 ```
 
-## 2. Recuperer le projet
+## 1. Installation
+
+Prérequis : Git et Python 3.11 ou plus récent. La campagne publiée a utilisé Python 3.13.1.
 
 ```bash
 git clone https://github.com/rolln7drktayau/ADARE.git
 cd ADARE
-git checkout master
+git checkout review/swevo-major-revision-2026
+python -m venv .venv
 ```
 
-## 3. Prerequis
+Sous PowerShell :
 
-- Python 3.10+ recommande.
-- Git.
-- Make.
-- LaTeX/MiKTeX seulement si vous voulez recompiler le PDF de l'article.
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
 
-Sur Windows, si `make` n'est pas disponible, l'installer via Git Bash, MSYS2, Chocolatey, ou utiliser directement les commandes Python indiquees dans le README.
-
-## 4. Demarrage recommande
-
-La commande principale prepare l'environnement puis ouvre un menu interactif :
+Sous Linux/macOS :
 
 ```bash
-make
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-Cette commande fait :
+## 2. Vérification rapide
 
-1. installation/mise a jour des dependances via `requirements.txt`,
-2. creation des dossiers de sortie,
-3. verification syntaxique des scripts principaux,
-4. ouverture du menu ADARE avec les temps estimes.
-
-Si l'environnement est deja pret :
+ADARE seul :
 
 ```bash
-make menu
+python scripts/run_adare.py --benchmarks Montage_25 --runs 1 --generations 5 --population-size 20 --output-dir output/smoke_adare
 ```
 
-Pour voir toutes les commandes :
+Comparaison appariée courte :
 
 ```bash
-make help
+python scripts/run_extended_comparison.py --benchmarks Montage_25 --algorithms ADARE NSGA-III QL-NSGA-III --runs 2 --generations 5 --population-size 20 --output-dir output/smoke_comparison
 ```
 
-## 5. Commandes utiles
+Ces commandes vérifient le chargement du benchmark, l'évaluateur, les algorithmes et l'écriture des rapports. Elles ne reproduisent pas les conclusions statistiques du papier.
 
-### Tester rapidement que tout fonctionne
+## 3. Protocole complet de la major revision
+
+Sous Windows, afficher d'abord le protocole sans l'exécuter :
+
+```powershell
+.\run_swevo_major_revision.ps1 -Preset full
+```
+
+Puis lancer une étape précise :
+
+```powershell
+.\run_swevo_major_revision.ps1 -Preset full -Only 20_small_all_algorithms_r20_g70
+```
+
+Les identifiants, temps attendus et règles de reprise sont détaillés dans [swevo_execution_tutorial_fr.md](swevo_execution_tutorial_fr.md). Les sorties sont placées dans `output/major_revision/` et ne sont pas versionnées.
+
+## 4. Budgets confirmatoires
+
+| Protocole | Répétitions | Population | Générations |
+|---|---:|---:|---:|
+| Petits workflows | 20 | 100 | 70 |
+| 1000 tâches, budget intermédiaire | 20 | 80 | 50 |
+| 1000 tâches, pression longue | 20 | 80 | 100 |
+| Classe 3000 tâches | 10 | 60 | 20 |
+| Diagnostic ressources/scalabilité | 10 | 60 | 30 |
+
+Les graines et populations initiales sont appariées. Le cache peut produire des nombres d'évaluations objectives uniques différents malgré des budgets population/générations identiques ; le fichier `evaluation_budget.csv` documente cette différence.
+
+## 5. Régénérer les résultats synthétiques
+
+Après les expériences :
 
 ```bash
-make smoke
+python scripts/major_revision_report.py --root output/major_revision
+python scripts/build_revision_assets.py
 ```
 
-But : lancer un petit test comparatif ADARE vs NSGA-III.
+Les résumés destinés au contrôle et à la réutilisation sont versionnés dans `results/major_revision/`. Les tableaux LaTeX sont dans `papers/generated/` et les figures finales dans `Figures/`.
 
-### Lancer ADARE seul
+## 6. Compiler l'article
+
+Le PDF versionné est `papers/article_swevo.pdf`. Avec MiKTeX/TeXLive :
 
 ```bash
-make adare
+cd papers
+pdflatex -interaction=nonstopmode -halt-on-error article_swevo.tex
+pdflatex -interaction=nonstopmode -halt-on-error article_swevo.tex
 ```
 
-But : executer uniquement ADARE sur `Montage_25`, sans baseline.
+Sous Windows, `build_swevo_revision.ps1` compile aussi la réponse et crée localement un paquet dans `submission/`, dossier ignoré par Git.
 
-Pour un workflow plus grand :
+## 7. Réutiliser l'évaluateur ou ajouter un algorithme
 
-```bash
-make adare-1000
-```
+Un nouvel optimiseur doit utiliser :
 
-But : executer ADARE seul sur `CyberShake_1000`.
+- les mêmes objets workflow/ressources chargés par `problem/` ;
+- la fonction d'évaluation commune de `BaseAlgorithm` ;
+- une population initiale fournie par le runner apparié ;
+- `survival_population` pour les comparaisons finales ;
+- les mêmes graines et budgets que ses comparateurs.
 
-### Voir l'evolution de l'algorithme
+Il faut rapporter les indicateurs séparément, les évaluations réellement exécutées, le temps, et une inférence appariée. Une moyenne de pourcentages entre HV, IGD, spacing, epsilon et coverage ne doit pas servir de conclusion principale.
 
-```bash
-make live
-```
+## 8. Portée scientifique
 
-Cette commande lance une vue d'evolution avec :
-
-- generation courante,
-- courbes de convergence,
-- evolution des metriques HV, IGD, spacing, epsilon, coverage-to-reference,
-- projection du front Pareto.
-
-Les sorties sont sauvegardees dans :
-
-```text
-output/live_view/
-```
-
-Note : cette vue ajoute un petit surcout car elle capture les populations par generation et calcule les metriques pour l'affichage. Les runs normaux ne sont pas ralentis.
-
-### Relancer le protocole principal du papier
-
-```bash
-make main20
-```
-
-But : relancer le protocole principal en 20 repetitions sur les petits workflows du papier.
-
-### Relancer les gros protocoles 1000/3000
-
-```bash
-make extended-1000-r20
-make extended-3000-r20
-```
-
-Attention : ces commandes peuvent durer plusieurs heures selon la machine.
-
-## 6. Ou trouver les resultats
-
-Les sorties nouvellement generees vont principalement dans :
-
-```text
-output/
-```
-
-Exemples :
-
-- `output/<Workflow>/reports/` : rapports CSV/TXT par workflow.
-- `output/<Workflow>/plots/` : figures de convergence et projections Pareto.
-- `output/adare_only/` : resultats ADARE seul.
-- `output/live_view/` : dashboard d'evolution et CSV associe.
-- `output/extended_1000_r20/` : runs longs 1000 taches.
-- `output/extended_3000_r20/` : runs longs 3000 taches.
-
-Les resultats consolides deja versionnes sont dans :
-
-```text
-results/extended/
-```
-
-Fichiers importants :
-
-```text
-results/extended/extended_global_summary.csv
-results/extended/extended_1000_r20_summary.csv
-results/extended/extended_3000_r20_summary.csv
-```
-
-Les figures de l'article sont dans :
-
-```text
-Figures/
-```
-
-Les PDFs de l'article sont :
-
-```text
-papers/article_ecml.pdf
-ADARE_Adaptive_Data-driven_Algorithm_for_Resource_Evolution.pdf
-```
-
-## 7. Structure du projet
-
-```text
-algorithms/        implementations ADARE, NSGA-III, NSGA-II, MOEA/D, QL-NSGA-III, OVEA-style, QMOEA/D-AWA-style
-config/            parametres experimentaux et algorithmiques
-data/benchmarks/   workflows disponibles
-evaluation/        metriques et visualisation
-scripts/           scripts executables
-results/extended/  resultats consolides versionnes
-output/            resultats generes localement
-docs/              notes et audits de revision
-```
-
-## 8. Ce qui a ete modifie apres les reviews
-
-Principales revisions :
-
-- ADARE est maintenant presente comme une approche autonome de controle adaptatif multi-objectif, pas seulement comme une extension optimisee de NSGA-III.
-- Ajout de runs sur workflows 1000 et 3000 taches.
-- Ajout de comparaisons avec des baselines adaptatives/recentes : QL-NSGA-III, OVEA-style, QMOEA/D-AWA-style.
-- Ajout de protocoles longs en 20 repetitions sur 1000/3000.
-- Ajout d'un runner ADARE seul.
-- Ajout d'une vue d'evolution.
-- Reorganisation des scripts dans `scripts/`.
-- Ajout d'un menu Make reproductible.
-- Mise a jour du README, du rapid-startup, des figures et des PDFs.
-
-## 9. Points a discuter pour IEEE TEVC
-
-IEEE TEVC semble une cible ambitieuse mais coherente, car la version revisee met davantage l'accent sur :
-
-- optimisation evolutionnaire multi-objectif,
-- controle adaptatif des operateurs,
-- evaluation comparative contre des familles MOEA classiques et adaptatives,
-- scalabilite sur workflows 1000/3000.
-
-Points à valider avant soumission journal :
-
-- niveau de detail theorique attendu par TEVC,
-- longueur et format journal,
-- besoin eventuel d'ajouter plus de workflows/domaines,
-- opportunite d'ajouter des implementations exactes publiques de certains baselines si disponibles.
+Le modèle est déterministe et utilise des unités de simulateur. L'énergie est un proxy compute-only. Les pannes, la contention, l'énergie de communication/idle et les coûts de transfert sont hors périmètre. ADARE est une extension adaptative de NSGA-III et non un nouvel opérateur de survie. Les adaptations OVEA-style et QMOEA/D-AWA-style ne sont pas des reproductions officielles de leurs auteurs.

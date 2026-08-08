@@ -42,6 +42,9 @@ Main files to inspect or share back for interpretation:
 output/major_revision/reports/major_revision_summary.md
 output/major_revision/reports/major_revision_statistics.csv
 output/major_revision/reports/controller_behavior.csv
+output/major_revision/reports/runtime_breakdown.csv
+output/major_revision/reports/reward_survival_correlation.csv
+output/major_revision/reports/evaluation_budget.csv
 output/major_revision/reports/reviewer_response_matrix.md
 output/major_revision/reports/major_revision_full_protocol.md
 output/major_revision/logs/
@@ -52,6 +55,8 @@ output/major_revision/logs/
 The full protocol prepares:
 
 - V1-V5 ablation evidence for module contribution.
+- Controlled static/global-UCB/contextual-UCB/proposed-reward ablation with mutation and archive held fixed.
+- Paired reward-weight, clipping, and learning-rate sensitivity analysis.
 - Small-workflow 20-run comparisons against all implemented baselines.
 - 1000-task budget sweeps with deeper generation budgets.
 - 3000-task deeper stress tests.

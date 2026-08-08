@@ -1,48 +1,71 @@
-# Python bytecode and caches
-__pycache__/
-*.pyc
+# Local recovery area (never publish)
+corbeille/
 
-# Private review notes
-docs/cmt_response_audit.md
-notes.txt
-swevo_Major_Reviews.txt
+# Python bytecode, caches and environments
+__pycache__/
+*.py[cod]
 *.pyo
 *.pyd
 *.py,cover
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-
-# Virtual environments
+.coverage
+.coverage.*
+htmlcov/
 myenv/
 .venv/
 venv/
 env/
 
-# Runtime and profiling artifacts
+# Local tools, IDE and OS files
+.tools/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Generated runs, caches and profiling
 output/
+saves/
 data/history/
 data/dxdiag.txt
-CMT/
-saves/
 *.prof
 *.lprof
 *.log
 
-# Coverage
-.coverage
-.coverage.*
-htmlcov/
+# Generated submission bundles (sources remain under papers/)
+submission/
+*.zip
 
-# LaTeX temporary files
-/article_ecml.*
+# Private review material and personal notes
+CMT/
+View Letter.pdf
+swevo_Major_Reviews.txt
+docs/cmt_response_audit.md
+notes.txt
+
+# Obsolete/local publishing material
+templates/
+%OUTDIR%/
+ADARE_Adaptive_Data-driven_Algorithm_for_Resource_Evolution.pdf
+ADARE_SwEvo_Submission.pdf
+
+# LaTeX intermediates (PDFs and source .tex files remain versionable)
 *.aux
+*.bbl
+*.bcf
+*.blg
 *.fdb_latexmk
 *.fls
+*.lof
+*.lot
+*.nav
 *.out
+*.run.xml
+*.snm
+*.spl
 *.synctex.gz
-
-# OS/editor noise
-.DS_Store
-Thumbs.db
-.vscode/
+*.toc
+*.xdv

@@ -111,9 +111,17 @@ def main() -> int:
 
     per_benchmark_rows: List[Dict[str, Any]] = []
 
+    total_benchmark_steps = len(variants) * len(benchmarks)
+    completed_benchmark_steps = 0
     for vname, vcfg in variants.items():
         print(f"\n=== {vname} ===")
         for bidx, benchmark in enumerate(benchmarks):
+            overall_percent = 100.0 * completed_benchmark_steps / total_benchmark_steps
+            print(
+                f"Ablation progress: {completed_benchmark_steps}/{total_benchmark_steps} "
+                f"[{overall_percent:6.2f}%] | next={vname}/{benchmark}",
+                flush=True,
+            )
             res = run_benchmark(
                 benchmark=benchmark,
                 objective_names=objective_names,
@@ -126,6 +134,7 @@ def main() -> int:
                 output_root=output_root / vname,
                 save_plots=not args.no_plots,
             )
+            completed_benchmark_steps += 1
             srows = res["summary_rows"]
             core = [r for r in srows if r["metric"] in CORE_QUALITY_METRICS]
             objectives = [r for r in srows if str(r["metric"]).endswith("_best")]
@@ -141,6 +150,7 @@ def main() -> int:
                     "runtime_gain_percent": float(runtime["gain_percent"]),
                 }
             )
+    print(f"Ablation progress: {total_benchmark_steps}/{total_benchmark_steps} [100.00%]", flush=True)
 
     # aggregate across benchmarks
     agg_rows: List[Dict[str, Any]] = []

@@ -7,6 +7,7 @@ from typing import Dict, Sequence
 import numpy as np
 from pymoo.indicators.hv import Hypervolume  # type: ignore
 from pymoo.indicators.igd import IGD  # type: ignore
+from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting  # type: ignore
 from scipy.stats import wilcoxon  # type: ignore
 
 
@@ -18,23 +19,19 @@ def dominates(a: Sequence[float], b: Sequence[float]) -> bool:
 
 
 def filter_non_dominated(front: np.ndarray) -> np.ndarray:
-    """Extract unique non-dominated points from a candidate front."""
+    """Extract unique non-dominated points using pymoo's optimized sorter."""
     points = np.asarray(front, dtype=float)
     if points.size == 0:
         return points.reshape(0, 0)
-
-    keep = np.ones(points.shape[0], dtype=bool)
-    for i in range(points.shape[0]):
-        if not keep[i]:
-            continue
-        for j in range(points.shape[0]):
-            if i == j or not keep[j]:
-                continue
-            if dominates(points[j], points[i]):
-                keep[i] = False
-                break
-    nd = points[keep]
-    return np.unique(nd, axis=0)
+    if points.ndim != 2:
+        raise ValueError("front must be a two-dimensional objective array")
+    points = np.unique(points, axis=0)
+    finite = np.all(np.isfinite(points), axis=1)
+    points = points[finite]
+    if len(points) == 0:
+        return points
+    indices = NonDominatedSorting().do(points, only_non_dominated_front=True)
+    return points[np.asarray(indices, dtype=int)]
 
 
 def spacing_metric(front: np.ndarray) -> float:
@@ -56,11 +53,13 @@ def epsilon_indicator(approx_front: np.ndarray, reference_front: np.ndarray) -> 
         return float("nan")
 
     eps = -np.inf
-    for ref_point in reference:
-        eps_for_ref = np.inf
-        for approx_point in approx:
-            eps_for_ref = min(eps_for_ref, np.max(approx_point - ref_point))
-        eps = max(eps, eps_for_ref)
+    # Chunk the reference set to keep peak memory bounded while performing the
+    # pairwise objective comparisons in NumPy rather than Python loops.
+    for start in range(0, len(reference), 512):
+        ref_chunk = reference[start : start + 512]
+        differences = approx[:, None, :] - ref_chunk[None, :, :]
+        per_reference = np.min(np.max(differences, axis=2), axis=0)
+        eps = max(eps, float(np.max(per_reference)))
     return float(eps)
 
 
@@ -72,9 +71,11 @@ def coverage_metric(front_a: np.ndarray, front_b: np.ndarray) -> float:
         return 0.0
 
     dominated = 0
-    for point_b in b:
-        if any(dominates(point_a, point_b) for point_a in a):
-            dominated += 1
+    for start in range(0, len(b), 512):
+        b_chunk = b[start : start + 512]
+        weak = np.all(a[:, None, :] <= b_chunk[None, :, :], axis=2)
+        strict = np.any(a[:, None, :] < b_chunk[None, :, :], axis=2)
+        dominated += int(np.count_nonzero(np.any(weak & strict, axis=0)))
     return float(dominated / len(b))
 
 

@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 import sys
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Sequence
 
@@ -190,6 +191,7 @@ def run_benchmark(
     runs: int,
     base_seed: int,
     output_root: Path,
+    config_overrides: Dict[str, Dict[str, Any]] | None = None,
 ) -> tuple[List[Dict[str, Any]], Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     print(f"\nExtended benchmark {benchmark} | runs={runs} | algos={', '.join(selected_algorithms)}")
     tasks = load_tasks(benchmark)
@@ -201,23 +203,31 @@ def run_benchmark(
     histories: Dict[str, List[np.ndarray]] = {label: [] for label in selected_algorithms}
     times: Dict[str, List[float]] = {label: [] for label in selected_algorithms}
     objective_best: Dict[str, List[np.ndarray]] = {label: [] for label in selected_algorithms}
+    runtime_breakdowns: Dict[str, List[Dict[str, float]]] = {label: [] for label in selected_algorithms}
+    objective_evaluations: Dict[str, List[int]] = {label: [] for label in selected_algorithms}
 
     configs = {label: load_json(config_path) for label, (_, config_path) in ALGORITHMS.items()}
+    for label, overrides in (config_overrides or {}).items():
+        if label in configs:
+            configs[label].update(overrides)
     for run_idx in range(runs):
         run_seed = base_seed + 97 * run_idx
-        print(f"  Run {run_idx + 1}/{runs} | seed={run_seed}")
+        run_percent = 100.0 * (run_idx + 1) / runs
+        print(f"  Run {run_idx + 1}/{runs} [{run_percent:6.2f}%] | seed={run_seed}", flush=True)
         init_pop = build_initial_population(
             seed=run_seed,
             population_size=int(shared_config["population_size"]),
             num_tasks=len(tasks),
             num_nodes=len(nodes),
         )
-        for algo_offset, label in enumerate(selected_algorithms):
+        algorithm_seed = run_seed + 11
+        for label in selected_algorithms:
             cls, _ = ALGORITHMS[label]
             algo_shared = dict(shared_config)
             algo_config = dict(configs[label])
             if "gene_mutation_probability" in algo_config:
                 algo_shared["gene_mutation_probability"] = algo_config["gene_mutation_probability"]
+            construction_started = time.perf_counter()
             algorithm = cls(
                 shared_config=algo_shared,
                 algorithm_config=algo_config,
@@ -225,15 +235,21 @@ def run_benchmark(
                 tasks=tasks,
                 topological_order=order,
                 objective_names=OBJECTIVES,
-                seed=run_seed + 11 + algo_offset * 13,
+                seed=algorithm_seed,
                 initial_population=init_pop,
             )
+            construction_seconds = time.perf_counter() - construction_started
             result = algorithm.run()
-            front = filter_non_dominated(cls.population_to_array(result["population"]))
-            pool = cls.population_to_array(result.get("objective_population", result["population"]))
+            comparable_population = result.get("survival_population", result["population"])
+            front = filter_non_dominated(cls.population_to_array(comparable_population))
+            pool = cls.population_to_array(comparable_population)
             fronts[label].append(front)
             histories[label].append(np.asarray(result["history"], dtype=float))
-            times[label].append(float(result["time"]))
+            times[label].append(construction_seconds + float(result["time"]))
+            breakdown = {str(key): float(value) for key, value in result.get("runtime_breakdown", {}).items()}
+            breakdown["construction"] = construction_seconds
+            runtime_breakdowns[label].append(breakdown)
+            objective_evaluations[label].append(int(algorithm.objective_evaluations))
             objective_best[label].append(np.min(pool, axis=0))
 
     reference_front = filter_non_dominated(
@@ -252,14 +268,57 @@ def run_benchmark(
             for obj_idx, obj_name in enumerate(OBJECTIVES):
                 metrics[f"{obj_name}_best"] = float(objective_best[label][run_idx][obj_idx])
             metrics_by_algo[label].append(metrics)
-            row = {"benchmark": benchmark, "run": run_idx + 1, "algorithm": label}
+            row = {
+                "benchmark": benchmark,
+                "run": run_idx + 1,
+                "seed": base_seed + 97 * run_idx,
+                "algorithm_seed": base_seed + 97 * run_idx + 11,
+                "algorithm": label,
+            }
             row.update(metrics)
+            row["objective_evaluations"] = objective_evaluations[label][run_idx]
+            for component, seconds in runtime_breakdowns[label][run_idx].items():
+                row[f"runtime_{component}_seconds"] = seconds
             run_rows.append(row)
 
     summary_rows: List[Dict[str, Any]] = []
+    pairwise_rows: List[Dict[str, Any]] = []
     for baseline in selected_algorithms:
         if baseline == "ADARE":
             continue
+        for run_idx in range(runs):
+            for metric, direction in QUALITY_DIRECTIONS.items():
+                if metric == "coverage":
+                    adare_value = coverage_metric(fronts["ADARE"][run_idx], fronts[baseline][run_idx])
+                    baseline_value = coverage_metric(fronts[baseline][run_idx], fronts["ADARE"][run_idx])
+                else:
+                    adare_value = metrics_by_algo["ADARE"][run_idx][metric]
+                    baseline_value = metrics_by_algo[baseline][run_idx][metric]
+                pairwise_rows.append(
+                    {
+                        "benchmark": benchmark,
+                        "run": run_idx + 1,
+                        "seed": base_seed + 97 * run_idx,
+                        "baseline": baseline,
+                        "metric": metric,
+                        "direction": direction,
+                        "adare_value": adare_value,
+                        "baseline_value": baseline_value,
+                    }
+                )
+            for obj_idx, obj_name in enumerate(OBJECTIVES):
+                pairwise_rows.append(
+                    {
+                        "benchmark": benchmark,
+                        "run": run_idx + 1,
+                        "seed": base_seed + 97 * run_idx,
+                        "baseline": baseline,
+                        "metric": f"{obj_name}_best",
+                        "direction": "min",
+                        "adare_value": objective_best["ADARE"][run_idx][obj_idx],
+                        "baseline_value": objective_best[baseline][run_idx][obj_idx],
+                    }
+                )
         for metric, direction in QUALITY_DIRECTIONS.items():
             adare_values = [row[metric] for row in metrics_by_algo["ADARE"]]
             base_values = [row[metric] for row in metrics_by_algo[baseline]]
@@ -306,6 +365,7 @@ def run_benchmark(
             )
 
     write_csv(benchmark_dir / f"{benchmark}_extended_run_metrics.csv", run_rows)
+    write_csv(benchmark_dir / f"{benchmark}_extended_pairwise_metrics.csv", pairwise_rows)
     write_csv(benchmark_dir / f"{benchmark}_extended_summary.csv", summary_rows)
 
     front_rows: List[Dict[str, Any]] = []
@@ -390,8 +450,20 @@ def main() -> None:
     print("\nExtended comparison summary")
     for baseline in [label for label in selected if label != "ADARE"]:
         rows = [row for row in all_summary if row["baseline"] == baseline and row["metric"] in CORE_METRICS]
-        wins = sum(1 for row in rows if float(row["gain_percent"]) > 0.0)
-        mean_gain = float(np.mean([float(row["gain_percent"]) for row in rows])) if rows else float("nan")
+        # Determine wins from the raw means. A percentage gain is undefined
+        # when the baseline mean is zero (notably for coverage), but the
+        # direction of the comparison remains well defined.
+        wins = sum(
+            1
+            for row in rows
+            if (
+                float(row["adare_mean"]) > float(row["baseline_mean"])
+                if QUALITY_DIRECTIONS[row["metric"]] == "max"
+                else float(row["adare_mean"]) < float(row["baseline_mean"])
+            )
+        )
+        finite_gains = [float(row["gain_percent"]) for row in rows if np.isfinite(float(row["gain_percent"]))]
+        mean_gain = float(np.mean(finite_gains)) if finite_gains else float("nan")
         print(f"- ADARE vs {baseline}: core wins={wins}/{len(rows)}, mean core gain={mean_gain:.2f}%")
 
 

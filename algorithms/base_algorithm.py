@@ -10,6 +10,7 @@ This module centralizes:
 
 import copy
 import random
+import time
 from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
 from typing import Any, Dict, List, Sequence, Tuple
@@ -178,6 +179,11 @@ class BaseAlgorithm(ABC):
         self.parallel_threshold = max(1, int(algorithm_config.get("parallel_threshold", 24)))
         self.use_fitness_cache = bool(algorithm_config.get("use_fitness_cache", True))
         self.fitness_cache: Dict[tuple[int, ...], tuple[float, ...]] = {}
+        self.objective_evaluations = 0
+        self.capture_generation_telemetry = bool(
+            algorithm_config.get("capture_generation_telemetry", False)
+        )
+        self.generation_telemetry: list[dict[str, Any]] = []
         self._pool: ProcessPoolExecutor | None = None
 
         self.num_tasks = len(self.tasks)
@@ -215,6 +221,7 @@ class BaseAlgorithm(ABC):
 
     def evaluate(self, individual: Sequence[int]) -> Tuple[float, ...]:
         """Evaluate an individual using the shared schedule evaluator."""
+        self.objective_evaluations += 1
         return evaluate_schedule(
             individual=individual,
             tasks=self.tasks,
@@ -283,6 +290,7 @@ class BaseAlgorithm(ABC):
                     ),
                 )
             fitnesses = list(self._pool.map(_base_worker_evaluate, vectors_to_eval))
+            self.objective_evaluations += len(vectors_to_eval)
         else:
             fitnesses = [self.toolbox.evaluate(vector) for vector in vectors_to_eval]
 
@@ -306,6 +314,29 @@ class BaseAlgorithm(ABC):
         """Return the per-objective best value in the given population."""
         values = np.asarray([ind.fitness.values for ind in population], dtype=float)
         return np.min(values, axis=0)
+
+    def record_generation_telemetry(
+        self,
+        generation: int,
+        population: Sequence[Any],
+        run_started: float,
+    ) -> None:
+        """Record opt-in convergence coordinates without changing search behavior."""
+        if not self.capture_generation_telemetry:
+            return
+        best = self.best_objectives(population)
+        row: dict[str, Any] = {
+            "generation": int(generation),
+            "objective_evaluations": int(self.objective_evaluations),
+            "elapsed_seconds": float(time.perf_counter() - run_started),
+        }
+        row.update(
+            {
+                f"{name}_best": float(best[idx])
+                for idx, name in enumerate(self.objective_names)
+            }
+        )
+        self.generation_telemetry.append(row)
 
     @staticmethod
     def population_to_array(population: Sequence[Any]) -> np.ndarray:

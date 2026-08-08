@@ -19,6 +19,17 @@ from evaluation import filter_non_dominated
 from main import build_initial_population, load_json, write_csv
 from problem import build_nodes, load_environments, load_tasks, topological_sort
 
+RUNTIME_COMPONENTS = (
+    "initialization",
+    "controller_selection",
+    "mutation_and_local_repair",
+    "archive_operations",
+    "fitness_evaluation",
+    "reward_and_controller_update",
+    "environmental_survival",
+    "final_postprocessing",
+)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run ADARE alone on one or more workflow benchmarks.")
@@ -78,13 +89,15 @@ def run_adare_benchmark(
     print(f"\nADARE only | benchmark={benchmark} | runs={runs}")
     for run_idx in range(runs):
         run_seed = base_seed + 97 * run_idx
-        print(f"  Run {run_idx + 1}/{runs} | seed={run_seed}")
+        run_percent = 100.0 * (run_idx + 1) / runs
+        print(f"  Run {run_idx + 1}/{runs} [{run_percent:6.2f}%] | seed={run_seed}", flush=True)
         init_pop = build_initial_population(
             seed=run_seed,
             population_size=int(shared_config["population_size"]),
             num_tasks=len(tasks),
             num_nodes=len(nodes),
         )
+        construction_started = time.perf_counter()
         algorithm = AdareAlgorithm(
             shared_config=shared_config,
             algorithm_config=adare_config,
@@ -95,10 +108,11 @@ def run_adare_benchmark(
             seed=run_seed,
             initial_population=init_pop,
         )
+        construction_seconds = time.perf_counter() - construction_started
 
         started = time.perf_counter()
         result = algorithm.run()
-        elapsed = float(result.get("time", time.perf_counter() - started))
+        elapsed = construction_seconds + float(result.get("time", time.perf_counter() - started))
 
         population_values = AdareAlgorithm.population_to_array(result["population"])
         objective_pool = AdareAlgorithm.population_to_array(result.get("objective_population", result["population"]))
@@ -112,10 +126,15 @@ def run_adare_benchmark(
             "time": elapsed,
             "population_size": int(shared_config["population_size"]),
             "generations": int(shared_config["generations"]),
+            "objective_evaluations": int(algorithm.objective_evaluations),
             "front_size": int(len(front)),
             "objective_pool_size": int(len(objective_pool)),
         }
         row.update({f"{name}_best": float(best_values[idx]) for idx, name in enumerate(objective_names)})
+        breakdown = result.get("runtime_breakdown", {})
+        row["runtime_construction_seconds"] = construction_seconds
+        for component in RUNTIME_COMPONENTS:
+            row[f"runtime_{component}_seconds"] = float(breakdown.get(component, 0.0))
         run_rows.append(row)
 
         front_rows.extend(rows_from_objective_array(benchmark, run_idx + 1, objective_names, front))
@@ -140,8 +159,11 @@ def run_adare_benchmark(
         "time",
         "population_size",
         "generations",
+        "objective_evaluations",
         "front_size",
         "objective_pool_size",
+        "runtime_construction_seconds",
+        *[f"runtime_{component}_seconds" for component in RUNTIME_COMPONENTS],
         *[f"{name}_best" for name in objective_names],
     ]
     history_fields = ["benchmark", "run", "generation", *[f"{name}_best" for name in objective_names]]
@@ -155,6 +177,8 @@ def run_adare_benchmark(
         "reward",
         "diversity",
         "stagnation",
+        "survived_children",
+        "survival_fraction",
     ]
 
     prefix = dirs["reports"] / f"{benchmark}_adare_only"

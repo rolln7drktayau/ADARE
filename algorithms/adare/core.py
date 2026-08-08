@@ -66,6 +66,21 @@ class AdareAlgorithm(BaseAlgorithm):
             exploration_end=float(self.algorithm_config.get("exploration_end", 0.05)),
             alpha=float(self.algorithm_config.get("q_learning_alpha", 0.2)),
         )
+        self.controller_mode = str(self.algorithm_config.get("controller_mode", "contextual")).lower()
+        if self.controller_mode not in {"static", "global", "contextual"}:
+            raise ValueError("controller_mode must be one of: static, global, contextual")
+        self.static_operator_index = int(self.algorithm_config.get("static_operator_index", 1))
+        self.static_operator_index %= len(self.controller.operators)
+        self.reward_mode = str(self.algorithm_config.get("reward_mode", "proposed")).lower()
+        if self.reward_mode not in {"dominance_only", "proposed"}:
+            raise ValueError("reward_mode must be one of: dominance_only, proposed")
+        reward_weights = self.algorithm_config.get("reward_weights", [0.45, 0.35, 0.15, 0.05])
+        if not isinstance(reward_weights, (list, tuple)) or len(reward_weights) != 4:
+            raise ValueError("reward_weights must contain four numeric values")
+        self.reward_weights = np.asarray(reward_weights, dtype=float)
+        if not np.all(np.isfinite(self.reward_weights)) or float(np.sum(np.abs(self.reward_weights))) <= 0.0:
+            raise ValueError("reward_weights must be finite and not all zero")
+        self.reward_clip = float(self.algorithm_config.get("reward_clip", 1.0))
         self.heuristic_mutation_rate = float(self.algorithm_config.get("heuristic_mutation_rate", 0.7))
         self.max_mutation_budget = max(1, int(self.algorithm_config.get("max_mutation_budget", 48)))
         self.use_adaptive_mutation = bool(self.algorithm_config.get("use_adaptive_mutation", True))
@@ -348,6 +363,7 @@ class AdareAlgorithm(BaseAlgorithm):
 
     def evaluate(self, individual: Sequence[int]) -> tuple[float, ...]:
         """Fast evaluator using pre-extracted arrays for reduced overhead."""
+        self.objective_evaluations += 1
         node_available = [0.0] * self.num_nodes
         task_finish = [0.0] * self.num_tasks
         task_node = [0] * self.num_tasks
@@ -427,6 +443,7 @@ class AdareAlgorithm(BaseAlgorithm):
                     )
                 vectors = [list(ind) for ind in invalid]
                 computed = list(self._pool.map(_worker_evaluate, vectors))
+                self.objective_evaluations += len(vectors)
                 for ind, fit in zip(invalid, computed):
                     ind.fitness.values = tuple(float(v) for v in fit)
             else:
@@ -472,6 +489,7 @@ class AdareAlgorithm(BaseAlgorithm):
                     ),
                 )
             computed = list(self._pool.map(_worker_evaluate, vectors_to_eval))
+            self.objective_evaluations += len(vectors_to_eval)
         else:
             computed = [self.evaluate(vector) for vector in vectors_to_eval]
 
@@ -861,35 +879,54 @@ class AdareAlgorithm(BaseAlgorithm):
                 comparisons += 1
         novelty_score = novelty / max(1, comparisons)
 
-        reward = (
-            0.45 * dominance_score
-            + 0.35 * mean_improvement
-            + 0.15 * balanced_improvement
-            + 0.05 * novelty_score
-        )
-        return float(np.clip(reward, -1.0, 1.0))
+        if self.reward_mode == "dominance_only":
+            reward = dominance_score
+        else:
+            signals = np.asarray(
+                [dominance_score, mean_improvement, balanced_improvement, novelty_score],
+                dtype=float,
+            )
+            reward = float(np.dot(self.reward_weights, signals))
+        if self.reward_clip > 0.0:
+            reward = float(np.clip(reward, -self.reward_clip, self.reward_clip))
+        return float(reward)
 
     def run(self) -> Dict[str, Any]:
         """Execute the full ADARE loop and return final populations and history."""
         self.reset_global_rng()
         start_time = time.perf_counter()
+        runtime_breakdown = {
+            "initialization": 0.0,
+            "controller_selection": 0.0,
+            "mutation_and_local_repair": 0.0,
+            "archive_operations": 0.0,
+            "fitness_evaluation": 0.0,
+            "reward_and_controller_update": 0.0,
+            "environmental_survival": 0.0,
+            "final_postprocessing": 0.0,
+        }
         try:
+            section_started = time.perf_counter()
             population = self.create_population()
             if self.enable_archive:
+                archive_started = time.perf_counter()
                 if self.seed_archive_with_energy_balanced:
                     balanced_seed = self._individual_from_key(self.energy_balanced_key)
                     self._update_archive(population + [balanced_seed])
                 else:
                     self._update_archive(population)
+                runtime_breakdown["archive_operations"] += time.perf_counter() - archive_started
             history = [self.best_objectives(population)]
             generation_snapshots: list[np.ndarray] = []
             if bool(self.algorithm_config.get("capture_generation_snapshots", False)):
                 generation_snapshots.append(self.population_to_array(population))
+            self.record_generation_telemetry(0, population, start_time)
             diversity = self._population_diversity(population)
             best_scalar = min(scalar_fitness(ind.fitness.values) for ind in population)
             stagnation = 0
             rescue_left = 0
             controller_trace: list[dict[str, float | int | str]] = []
+            runtime_breakdown["initialization"] += time.perf_counter() - section_started
 
             for gen in range(self.generations):
                 if gen % self.diversity_refresh_period == 0:
@@ -897,6 +934,8 @@ class AdareAlgorithm(BaseAlgorithm):
                 progress = gen / max(1, self.generations - 1)
                 stagnation_ratio = min(1.0, stagnation / self.stagnation_patience)
                 context_id = self.controller.context_id(progress, diversity, stagnation_ratio)
+                if self.controller_mode == "global":
+                    context_id = 0
                 objective_scales = self._objective_scales(population)
 
                 if rescue_left > 0:
@@ -931,12 +970,17 @@ class AdareAlgorithm(BaseAlgorithm):
                     if self.random.random() >= cxpb:
                         continue
 
-                    operator_idx = self.controller.select_operator(
-                        context_id,
-                        gen,
-                        self.generations,
-                        self.random,
-                    )
+                    if self.controller_mode == "static":
+                        operator_idx = self.static_operator_index
+                    else:
+                        controller_started = time.perf_counter()
+                        operator_idx = self.controller.select_operator(
+                            context_id,
+                            gen,
+                            self.generations,
+                            self.random,
+                        )
+                        runtime_breakdown["controller_selection"] += time.perf_counter() - controller_started
                     parent_fitness = (
                         tuple(float(v) for v in child1.fitness.values),
                         tuple(float(v) for v in child2.fitness.values),
@@ -949,6 +993,7 @@ class AdareAlgorithm(BaseAlgorithm):
                         (context_id, operator_idx, parent_fitness, parent_genotypes, child1, child2)
                     )
 
+                mutation_started = time.perf_counter()
                 for mutant in offspring:
                     mutated = False
                     if self.random.random() < mutpb:
@@ -998,13 +1043,21 @@ class AdareAlgorithm(BaseAlgorithm):
                             mutant[pos] = target_node
                             if mutant.fitness.valid:
                                 del mutant.fitness.values
+                runtime_breakdown["mutation_and_local_repair"] += time.perf_counter() - mutation_started
 
+                archive_started = time.perf_counter()
                 self._inject_archive(offspring, generation=gen)
                 self._inject_energy_anchor(offspring, generation=gen)
                 self._inject_energy_exploration(offspring)
+                runtime_breakdown["archive_operations"] += time.perf_counter() - archive_started
+                evaluation_started = time.perf_counter()
                 self.evaluate_population(offspring)
+                runtime_breakdown["fitness_evaluation"] += time.perf_counter() - evaluation_started
 
+                reward_started = time.perf_counter()
+                trace_survival_pending: list[tuple[int, tuple[tuple[int, ...], tuple[int, ...]]]] = []
                 for log_context_id, operator_idx, parent_fitness, parent_genotypes, child1, child2 in crossover_logs:
+                    child_keys = (genotype_key(child1), genotype_key(child2))
                     child_fitness = (
                         tuple(float(v) for v in child1.fitness.values),
                         tuple(float(v) for v in child2.fitness.values),
@@ -1013,10 +1066,11 @@ class AdareAlgorithm(BaseAlgorithm):
                         parent_fitness=parent_fitness,
                         child_fitness=child_fitness,
                         parent_genotypes=parent_genotypes,
-                        child_genotypes=(genotype_key(child1), genotype_key(child2)),
+                        child_genotypes=child_keys,
                         objective_scales=objective_scales,
                     )
-                    self.controller.update(log_context_id, operator_idx, reward)
+                    if self.controller_mode != "static":
+                        self.controller.update(log_context_id, operator_idx, reward)
                     controller_trace.append(
                         {
                             "generation": gen,
@@ -1028,13 +1082,24 @@ class AdareAlgorithm(BaseAlgorithm):
                             "stagnation": int(stagnation),
                         }
                     )
+                    trace_survival_pending.append((len(controller_trace) - 1, child_keys))
+                runtime_breakdown["reward_and_controller_update"] += time.perf_counter() - reward_started
 
+                survival_started = time.perf_counter()
                 combined = population + offspring
                 population = tools.selNSGA3(combined, self.population_size, self.reference_points)
                 if gen % self.elite_preservation_period == 0 or gen == self.generations - 1:
                     self._preserve_objective_elites(population, combined)
+                surviving_keys = {genotype_key(individual) for individual in population}
+                for trace_idx, child_keys in trace_survival_pending:
+                    survived = sum(1 for key in child_keys if key in surviving_keys)
+                    controller_trace[trace_idx]["survived_children"] = survived
+                    controller_trace[trace_idx]["survival_fraction"] = survived / 2.0
+                runtime_breakdown["environmental_survival"] += time.perf_counter() - survival_started
                 if self.enable_archive and (gen % self.archive_update_period == 0 or gen == self.generations - 1):
+                    archive_started = time.perf_counter()
                     self._update_archive(population)
+                    runtime_breakdown["archive_operations"] += time.perf_counter() - archive_started
 
                 current_best_scalar = min(scalar_fitness(ind.fitness.values) for ind in population)
                 if current_best_scalar + 1e-12 < best_scalar:
@@ -1047,8 +1112,15 @@ class AdareAlgorithm(BaseAlgorithm):
                 history.append(self.best_objectives(population))
                 if bool(self.algorithm_config.get("capture_generation_snapshots", False)):
                     generation_snapshots.append(self.population_to_array(population))
+                self.record_generation_telemetry(gen + 1, population, start_time)
 
-            final_population = list(population)
+            # Keep the final NSGA-III survival population separate from optional
+            # archive/fixed-candidate post-processing. Comparative runners must
+            # use this population so every algorithm is scored on an equally
+            # sized final nondominated set produced within the search budget.
+            postprocess_started = time.perf_counter()
+            survival_population = list(population)
+            final_population = list(survival_population)
             present_keys = {genotype_key(ind) for ind in final_population}
             if self.enable_archive:
                 for key in self.archive_keys:
@@ -1086,16 +1158,20 @@ class AdareAlgorithm(BaseAlgorithm):
                     self.precomputed_latency_key,
                     metric_idx=1,
                 )
+            runtime_breakdown["final_postprocessing"] += time.perf_counter() - postprocess_started
 
             elapsed = time.perf_counter() - start_time
             return {
                 "population": final_population,
+                "survival_population": survival_population,
                 "objective_population": objective_population,
                 "history": np.asarray(history, dtype=float),
                 "time": float(elapsed),
+                "runtime_breakdown": runtime_breakdown,
                 "controller": self.controller.snapshot(),
                 "controller_trace": controller_trace,
                 "generation_snapshots": generation_snapshots,
+                "generation_telemetry": list(self.generation_telemetry),
             }
         finally:
             if self._pool is not None:

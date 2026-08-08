@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shlex
 import subprocess
 import sys
@@ -99,18 +100,75 @@ def command_specs(preset: str) -> list[dict[str, object]]:
                 OUT / "quick_adare_trace",
             ),
         },
+        {
+            "id": "03_quick_controller_ablation",
+            "reviewer_targets": ["R4.1 controlled controller ablation sanity"],
+            "estimated_time": "1-3 min",
+            "command": cmd(
+                py(),
+                "scripts/run_controller_ablation.py",
+                "--benchmarks",
+                "Montage_25",
+                "--runs",
+                "1",
+                "--generations",
+                "4",
+                "--population-size",
+                "30",
+                "--output-dir",
+                OUT / "quick_controller_ablation",
+                "--figure-dir",
+                FIGURES / "quick_controller_ablation",
+            ),
+        },
     ]
     full = [
         {
             "id": "10_ablation_v1_v5_r20",
             "reviewer_targets": ["R1.2", "R2.3", "R4.1", "R5 reward/controller contribution"],
-            "estimated_time": "30-90 min",
+            "estimated_time": "10-25 min",
             "command": cmd(py(), "scripts/run_ablation_v1_v5.py", "--runs", "20", "--output-dir", OUT / "ablation_v1_v5_r20"),
+        },
+        {
+            "id": "11_controller_ablation_r20_g70",
+            "reviewer_targets": ["R1.2", "R2.3", "R4.1 static/global/contextual/reward isolation"],
+            "estimated_time": "1-3 h",
+            "command": cmd(
+                py(),
+                "scripts/run_controller_ablation.py",
+                "--runs",
+                "20",
+                "--generations",
+                "70",
+                "--population-size",
+                "100",
+                "--output-dir",
+                OUT / "controller_ablation_r20_g70",
+                "--figure-dir",
+                FIGURES / "controller_ablation_r20_g70",
+            ),
+        },
+        {
+            "id": "12_reward_sensitivity_r20_g70",
+            "reviewer_targets": ["R1.4", "R4.3", "R4.8", "R5 reward weights/clipping/alpha sensitivity"],
+            "estimated_time": "45-90 min",
+            "command": cmd(
+                py(),
+                "scripts/run_reward_sensitivity.py",
+                "--runs",
+                "20",
+                "--generations",
+                "70",
+                "--population-size",
+                "100",
+                "--output-dir",
+                OUT / "reward_sensitivity_r20_g70",
+            ),
         },
         {
             "id": "20_small_all_algorithms_r20_g70",
             "reviewer_targets": ["R1 fairness", "R3 experiments", "R4.9 statistics", "R4.15 baselines"],
-            "estimated_time": "1-3 h",
+            "estimated_time": "40-90 min",
             "command": cmd(
                 py(),
                 "scripts/run_extended_comparison.py",
@@ -133,7 +191,7 @@ def command_specs(preset: str) -> list[dict[str, object]]:
         {
             "id": "30_1000_budget_sweep_r20_g50",
             "reviewer_targets": ["R2.2", "R4.12", "R5 large-scale depth"],
-            "estimated_time": "several hours",
+            "estimated_time": "1.5-4 h",
             "command": cmd(
                 py(),
                 "scripts/run_extended_comparison.py",
@@ -154,7 +212,7 @@ def command_specs(preset: str) -> list[dict[str, object]]:
         {
             "id": "31_1000_budget_sweep_r20_g100",
             "reviewer_targets": ["R2.2", "R4.12", "R5 requested 100-generation 1000-task evidence"],
-            "estimated_time": "long, likely overnight",
+            "estimated_time": "3-8 h",
             "command": cmd(
                 py(),
                 "scripts/run_extended_comparison.py",
@@ -175,7 +233,7 @@ def command_specs(preset: str) -> list[dict[str, object]]:
         {
             "id": "40_3000_budget_sweep_r10_g20",
             "reviewer_targets": ["R4.12", "3000-task deeper-than-original stress test"],
-            "estimated_time": "long",
+            "estimated_time": "2-6 h",
             "command": cmd(
                 py(),
                 "scripts/run_extended_comparison.py",
@@ -196,7 +254,7 @@ def command_specs(preset: str) -> list[dict[str, object]]:
         {
             "id": "50_adare_controller_traces_1000_r20_g100",
             "reviewer_targets": ["R1.8", "controller phase behavior", "operator preference dynamics"],
-            "estimated_time": "several hours",
+            "estimated_time": "45 min-2 h",
             "command": cmd(
                 py(),
                 "scripts/run_adare.py",
@@ -211,6 +269,26 @@ def command_specs(preset: str) -> list[dict[str, object]]:
                 "80",
                 "--output-dir",
                 OUT / "adare_controller_traces_1000_r20_g100",
+            ),
+        },
+        {
+            "id": "60_scaling_resource_diagnostics_r10_g30",
+            "reviewer_targets": [
+                "R4.12 evaluation/time convergence and memory scaling",
+                "R4.13 resource-configuration sensitivity",
+            ],
+            "estimated_time": "30-90 min",
+            "command": cmd(
+                py(),
+                "scripts/run_scaling_diagnostics.py",
+                "--runs",
+                "10",
+                "--generations",
+                "30",
+                "--population-size",
+                "60",
+                "--output-dir",
+                OUT / "scaling_diagnostics_r10_g30",
             ),
         },
     ]
@@ -300,14 +378,25 @@ def run_step(spec: dict[str, object]) -> int:
     with log_path.open("w", encoding="utf-8") as log:
         log.write(f"Started: {started}\n")
         log.write(f"Command: {quote_command(spec['command'])}\n\n")
-        proc = subprocess.run(
+        log.flush()
+        child_env = dict(os.environ)
+        child_env["PYTHONUNBUFFERED"] = "1"
+        proc = subprocess.Popen(
             list(spec["command"]),
             cwd=ROOT,
+            env=child_env,
             text=True,
-            stdout=log,
+            stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            check=False,
+            bufsize=1,
         )
+        if proc.stdout is None:
+            raise RuntimeError(f"Unable to capture output for step {step_id}")
+        for line in proc.stdout:
+            print(line, end="", flush=True)
+            log.write(line)
+            log.flush()
+        proc.wait()
         log.write(f"\nFinished: {datetime.now().isoformat(timespec='seconds')}\n")
         log.write(f"Exit code: {proc.returncode}\n")
     print(f"Log: {log_path}")

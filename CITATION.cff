@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use ADARE in research, please cite the software and the associated manuscript."
+title: "ADARE: Adaptive NSGA-III control for many-objective workflow scheduling"
+type: software
+authors:
+  - family-names: Tayo
+    given-names: Roland Cedric
+  - family-names: Yassa
+    given-names: Sonia
+repository-code: "https://github.com/rolln7drktayau/ADARE"
+url: "https://github.com/rolln7drktayau/ADARE"
+license: MIT
+version: "2.0-review"
+date-released: 2026-08-08
+keywords:
+  - many-objective optimization
+  - workflow scheduling
+  - NSGA-III
+  - adaptive operator selection
+  - edge computing
+  - fog computing
+  - cloud computing

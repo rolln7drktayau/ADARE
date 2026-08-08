@@ -30,7 +30,7 @@
     "append_energy_anchor_final": false,
     "append_energy_balanced_final": false,
     "seed_archive_with_energy_balanced": false,
-    "append_speed_latency_final": true,
-    "refine_speed_latency_final": true,
+    "append_speed_latency_final": false,
+    "refine_speed_latency_final": false,
     "refine_speed_latency_iterations": 8
 }

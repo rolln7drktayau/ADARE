@@ -89,6 +89,10 @@ class QLNSGA3Algorithm(BaseAlgorithm):
         try:
             population = self.create_population()
             history = [self.best_objectives(population)]
+            generation_snapshots: list[np.ndarray] = []
+            if bool(self.algorithm_config.get("capture_generation_snapshots", False)):
+                generation_snapshots.append(self.population_to_array(population))
+            self.record_generation_telemetry(0, population, start_time)
 
             for gen in range(self.generations):
                 diversity = population_diversity(population)
@@ -129,6 +133,9 @@ class QLNSGA3Algorithm(BaseAlgorithm):
 
                 population = tools.selNSGA3(population + offspring, self.population_size, self.reference_points)
                 history.append(self.best_objectives(population))
+                if bool(self.algorithm_config.get("capture_generation_snapshots", False)):
+                    generation_snapshots.append(self.population_to_array(population))
+                self.record_generation_telemetry(gen + 1, population, start_time)
 
             elapsed = time.perf_counter() - start_time
             return {
@@ -138,6 +145,8 @@ class QLNSGA3Algorithm(BaseAlgorithm):
                 "time": float(elapsed),
                 "q_values": self.q_values.tolist(),
                 "usage_count": self.usage_count.tolist(),
+                "generation_snapshots": generation_snapshots,
+                "generation_telemetry": list(self.generation_telemetry),
             }
         finally:
             self.shutdown()

@@ -1,6 +1,6 @@
 # Variables
 PYTHON ?= python
-VENV = myenv
+VENV = .venv
 REQUIREMENTS = requirements.txt
 
 ifeq ($(OS),Windows_NT)
@@ -21,7 +21,7 @@ BUILD_DIR = $(DATA_DIR)/build
 COOKIES_DIR = har_and_cookies
 
 # Main commands
-.PHONY: all start prepare menu run adare adare-1000 live smoke clean build setup format lint help main20 extended-small extended-1000-r20 extended-3000-r20 ablation figures paper swevo-paper revision-plan revision-quick revision-full revision-report
+.PHONY: all start prepare menu run adare adare-1000 live smoke clean build setup format lint help main20 extended-small extended-1000-r20 extended-3000-r10 ablation figures swevo-paper revision-plan revision-quick revision-full revision-report revision-assets revision-package
 
 all: start
 
@@ -29,7 +29,7 @@ start: setup prepare menu
 
 prepare:
 	$(PYTHON) -c "from pathlib import Path; [Path(p).mkdir(parents=True, exist_ok=True) for p in ('output/plots','output/reports','results/extended','Figures','data/history')]"
-	$(PYTHON) -m py_compile scripts/main.py scripts/run_adare.py scripts/run_extended_comparison.py scripts/run_ablation_v1_v5.py scripts/live_view.py scripts/make_menu.py scripts/adare_vs_nsga3.py scripts/major_revision_pipeline.py scripts/major_revision_report.py evaluation/plot_extended_results.py evaluation/plot_multialgo_figures.py
+	$(PYTHON) -m py_compile scripts/main.py scripts/run_adare.py scripts/run_extended_comparison.py scripts/run_ablation_v1_v5.py scripts/run_controller_ablation.py scripts/run_reward_sensitivity.py scripts/run_scaling_diagnostics.py scripts/build_revision_assets.py scripts/live_view.py scripts/make_menu.py scripts/adare_vs_nsga3.py scripts/major_revision_pipeline.py scripts/major_revision_report.py evaluation/plot_extended_results.py evaluation/plot_multialgo_figures.py
 
 menu:
 	$(PYTHON) scripts/make_menu.py
@@ -58,10 +58,10 @@ extended-small:
 	$(PYTHON) scripts/run_extended_comparison.py --benchmarks Montage_25 CyberShake_30 Epigenomics_24 --algorithms ADARE NSGA-III NSGA-II MOEA/D QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 5 --generations 15 --population-size 80 --output-dir output/extended_small_menu --figure-dir Figures
 
 extended-1000-r20:
-	$(PYTHON) scripts/run_extended_comparison.py --benchmarks CyberShake_1000 Inspiral_1000 Montage_1000 Sipht_1000 --algorithms ADARE NSGA-III QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 20 --generations 15 --population-size 80 --output-dir output/extended_1000_r20
+	$(PYTHON) scripts/run_extended_comparison.py --benchmarks CyberShake_1000 Inspiral_1000 Montage_1000 Sipht_1000 --algorithms ADARE NSGA-III QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 20 --generations 100 --population-size 80 --output-dir output/extended_1000_r20_g100
 
-extended-3000-r20:
-	$(PYTHON) scripts/run_extended_comparison.py --benchmarks Montage_3000_wfcommons Epigenomics_3000_wfcommons Seismology_3000_wfcommons Soykb_3000_wfcommons Srasearch_3000_wfcommons --algorithms ADARE NSGA-III QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 20 --generations 8 --population-size 60 --output-dir output/extended_3000_r20
+extended-3000-r10:
+	$(PYTHON) scripts/run_extended_comparison.py --benchmarks Montage_3000_wfcommons Epigenomics_3000_wfcommons Seismology_3000_wfcommons Soykb_3000_wfcommons Srasearch_3000_wfcommons --algorithms ADARE NSGA-III QL-NSGA-III OVEA-style QMOEA/D-AWA-style --runs 10 --generations 20 --population-size 60 --output-dir output/extended_3000_r10_g20
 
 ablation:
 	$(PYTHON) scripts/run_ablation_v1_v5.py --runs 20 --output-dir output/ablation_full
@@ -82,15 +82,15 @@ revision-full:
 revision-report:
 	$(PYTHON) scripts/major_revision_report.py --root output/major_revision
 
-paper:
-	cd papers && pdflatex -interaction=nonstopmode article_ecml.tex
-	cd papers && pdflatex -interaction=nonstopmode article_ecml.tex
-	$(PYTHON) -c "import shutil; shutil.copyfile('papers/article_ecml.pdf','ADARE_Adaptive_Data-driven_Algorithm_for_Resource_Evolution.pdf')"
+revision-assets: revision-report
+	$(PYTHON) scripts/build_revision_assets.py
 
 swevo-paper:
 	cd papers && pdflatex -interaction=nonstopmode article_swevo.tex
 	cd papers && pdflatex -interaction=nonstopmode article_swevo.tex
-	$(PYTHON) -c "import shutil; shutil.copyfile('papers/article_swevo.pdf','ADARE_SwEvo_Submission.pdf')"
+
+revision-package:
+	powershell -ExecutionPolicy Bypass -File build_swevo_revision.ps1
 
 # Run with specific workflow
 run-%:
@@ -152,16 +152,17 @@ help:
 	@echo "  make smoke            - Quick sanity run (~1-3 min)"
 	@echo "  make main20           - Main 20-run paper protocol (~45-90 min)"
 	@echo "  make extended-small   - Extended small-suite comparison (~20-45 min)"
-	@echo "  make extended-1000-r20 - Long 1000-task 20-run protocol (~2h-2h15)"
-	@echo "  make extended-3000-r20 - Long 3000-task 20-run protocol (~3h-4h)"
+	@echo "  make extended-1000-r20 - 100-generation 1000-task protocol (long)"
+	@echo "  make extended-3000-r10 - 20-generation 3000-task protocol (long)"
 	@echo "  make ablation         - V1-V5 ablation (~30-75 min)"
 	@echo "  make figures          - Regenerate extended multi-algorithm figures (<1 min)"
 	@echo "  make revision-plan    - Prepare SwEvo major-revision protocol without running it"
 	@echo "  make revision-quick   - Run quick major-revision pipeline sanity check (~5-15 min)"
 	@echo "  make revision-full    - Run full major-revision experiments (long; logs under output/major_revision/logs)"
 	@echo "  make revision-report  - Rebuild major-revision statistics, controller summaries and checklist"
-	@echo "  make paper            - Compile and sync PDFs (~10-30 sec)"
+	@echo "  make revision-assets  - Rebuild reports, tables and publication figures"
 	@echo "  make swevo-paper      - Compile Elsevier/Swarm Evol. Comput. submission PDF (~10-30 sec)"
+	@echo "  make revision-package - Compile and package the complete revised submission (Windows)"
 	@echo "  make run-WORKFLOW_SIZE - Run with specific workflow (e.g., make run-CyberShake_30)"
 	@echo "  make clean            - Remove generated files"
 	@echo "  make setup            - Install dependencies"

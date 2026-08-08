@@ -1,0 +1,5 @@
+ADARE is positioned as an adaptive extension of NSGA-III.
+Matched paired tests cover workflows from 24 to about 3000 tasks.
+ADARE is favorable in 69 of 80 tests at 1000 tasks and 100 generations.
+Immediate controller reward predicts offspring survival in every traced run.
+Controller selection accounts for about 0.27% of measured runtime.
